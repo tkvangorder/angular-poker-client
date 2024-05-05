@@ -1,0 +1,12 @@
+<div class="justify-center top-0 left-0 items-center fixed flex bg-base-300 bg-opacity-90 w-full h-full">
+  <div class="flex justify-center rounded-xl border-2 border-primary items-center bg-base-100">
+    <form (submit)="onSubmit($event)" class="bg-transparent shadow-md rounded px-8 pt-6 pb-8">
+      <ng-content></ng-content>
+      <h1 class="modal-title mb-4 text-3xl font-bold text-center">{{ title }}</h1>
+      <hr class="mb-4 border-t-2 border-primary" />
+      <ng-content select=".content"></ng-content>
+      <hr class="mb-4 border-t-2 border-primary" />
+      <ng-content select=".actions"></ng-content>
+    </form>
+  </div>
+</div>
