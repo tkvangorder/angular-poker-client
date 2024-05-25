@@ -9,8 +9,7 @@ import { TitlePageComponent } from "./title-page/title-page.component";
     standalone: true,
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
-    imports: [RouterOutlet, NavigationBarComponent, TitlePageComponent]
+    imports: [RouterOutlet, NavigationBarComponent, TitlePageComponent],
 })
 export class AppComponent {
-  user?: User = undefined;
 }

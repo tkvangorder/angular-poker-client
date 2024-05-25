@@ -1,18 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { ModalComponent } from "../../shared/components/modal/modal.component";
 
 @Component({
-  selector: 'app-login-form',
-  standalone: true,
-  imports: [],
-  templateUrl: './login-form.component.html',
-  styleUrl: './login-form.component.css'
+    selector: 'app-login-form',
+    standalone: true,
+    templateUrl: './login-form.component.html',
+    styleUrl: './login-form.component.css',
+    imports: [ModalComponent]
 })
 export class LoginFormComponent {
 
-  onSubmit(event: any) {
-    console.log(event);
-  }
-  onCancel() {
-    console.log('cancelled');
-  }
+  @Input()
+  onCloseHandler: () => void = () => {};
+
+  @Input()
+  onSubmitHandler: (event: any) => void = (event) => {};
+
+
 }

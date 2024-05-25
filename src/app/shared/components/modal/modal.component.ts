@@ -1,22 +1,19 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LoginFormComponent } from "../../../title-page/login-form/login-form.component";
 
+
+export class ModalOptions {
+    title: string = 'Modal Title';
+    onSubmitHandler: (event: any) => void = (event) => {};
+}
 @Component({
     selector: 'app-modal',
     standalone: true,
     templateUrl: './modal.component.html',
     styleUrl: './modal.component.css',
-    imports: [LoginFormComponent]
 })
 export class ModalComponent {
 
     @Input()
-    title: string = 'Modal Title';
+    public options!: ModalOptions;
 
-    @Output()
-    modalSubmitted: EventEmitter<any> = new EventEmitter();
-    
-    onSubmit(event: any) {
-        this.modalSubmitted.emit(event);
-    }
 }

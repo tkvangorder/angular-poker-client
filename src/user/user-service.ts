@@ -5,7 +5,7 @@ import { User } from "./user-models";
 @Injectable({
   providedIn: 'root'
 })
-class UserService {
+export class UserService {
 
   private currentUser: User | null = null;
 
@@ -32,6 +32,3 @@ class UserService {
   }
 
 }
-
-export const userService = new UserService();
-

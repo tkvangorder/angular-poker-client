@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { UserService } from '../../user/user-service';
 
 @Component({
   selector: 'app-navigation-bar',
@@ -7,5 +8,8 @@ import { Component } from '@angular/core';
   templateUrl: './navigation-bar.component.html',
 })
 export class NavigationBarComponent {
+
+  constructor(private userService: UserService) {    
+  }
 
 }

@@ -1,17 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { ModalComponent } from "../../shared/components/modal/modal.component";
 
 @Component({
-  selector: 'app-register-user-form',
-  standalone: true,
-  imports: [],
-  templateUrl: './register-user-form.component.html',
-  styleUrl: './register-user-form.component.css'
+    selector: 'app-register-user',
+    standalone: true,
+    templateUrl: './register-user-form.component.html',
+    styleUrl: './register-user-form.component.css',
+    imports: [ModalComponent]
 })
 export class RegisterUserFormComponent {
-  onSubmit(event: any) {
-    console.log(event);
-  }
-  onCancel() {
-    console.log('cancelled');
-  }
+
+  @Input()
+  onCloseHandler: () => void = () => {};
+
+  @Input()
+  onSubmitHandler: (event: any) => void = (event) => {};
+
 }
