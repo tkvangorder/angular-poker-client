@@ -1,31 +1,27 @@
-<app-modal title="Login" [onSubmitHandler]="onSubmitHandler" >
-  <div class="content mb-4 grid grid-cols-3 gap-2 items-center">
-    <label class="label block text-right" htmlFor="username">
-      Username
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="username"
-      type="text"
-      placeholder="Username"
-    />
-    <label class="label block text-right" htmlFor="password">
-      Password
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="password"
-      type="password"
-      placeholder="Password"
-    />
-    <!-- <p class="col-start-2 col-span-2 bg-error pl-4 text-error-content rounded-md">
-      {errors.password.message}
-    </p> -->
-  </div>
-  <div class="actions flex items-center justify-center gap-2">
-    <button class="btn btn-secondary" type="button" (click)="onCloseHandler()">
-      Cancel
-    </button>
-    <button class="btn btn-primary" type="submit">Login</button>
-  </div>
+<app-modal title="Login" id="login" [options]="modalOptions" >
+  <form class="content" id="modal-form" [formGroup]="loginForm" (submit)="userLogin()">
+    <div class="mb-4 grid grid-cols-3 gap-2 items-center">
+      <label class="label block text-right" htmlFor="username">
+        Username
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="username"
+        type="text"
+        placeholder="Username"
+      />
+      <label class="label block text-right" htmlFor="password">
+        Password
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="password"
+        type="password"
+        placeholder="Password"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-4 text-error-content rounded-md">
+        {errors.password.message}
+      </p> -->
+    </div>
+  </form>
 </app-modal>
