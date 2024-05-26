@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { ModalComponent } from "../shared/components/modal/modal.component";
 import { UserService } from '../../user/user-service';
-import { LoginFormComponent } from "./login-form/login-form.component";
-import { RegisterUserFormComponent } from "./register-user-form/register-user-form.component";
+import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
+import { RegisterUserFormComponent } from "./register-user-dialog/register-user-dialog.component";
 import { ModalService } from '../shared/components/modal/modal.service';
 
 @Component({
@@ -10,7 +10,7 @@ import { ModalService } from '../shared/components/modal/modal.service';
     standalone: true,
     templateUrl: './title-page.component.html',
     styleUrl: './title-page.component.css',
-    imports: [ModalComponent, LoginFormComponent, RegisterUserFormComponent]
+    imports: [ModalComponent, LoginDialogComponent, RegisterUserFormComponent]
 })
 export class TitlePageComponent {
 
@@ -18,11 +18,11 @@ export class TitlePageComponent {
   }
 
   openLoginModal() {
-    this.modalService.open('login');
+    this.modalService.openDialog(LoginDialogComponent);
+    //this.modalService.open('login');
   }
   openRegisterUserModal() {
-    this.modalService.open('register-user');
+    this.modalService.openDialog(RegisterUserFormComponent);
   }
-
-
+  
 }

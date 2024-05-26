@@ -1,16 +1,16 @@
 import { Component, Input } from '@angular/core';
-import { ModalComponent, ModalOptions } from "../../shared/components/modal/modal.component";
+import { Modal, ModalComponent, ModalOptions } from "../../shared/components/modal/modal.component";
 import { ModalService } from '../../shared/components/modal/modal.service';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 @Component({
     selector: 'app-login-form',
     standalone: true,
-    templateUrl: './login-form.component.html',
-    styleUrl: './login-form.component.css',
+    templateUrl: './login-dialog.component.html',
+    styleUrl: './login-dialog.component.css',
     imports: [ModalComponent, CommonModule, ReactiveFormsModule]
 })
-export class LoginFormComponent {
+export class LoginDialogComponent implements Modal {
 
   loginForm = new FormGroup({
     username: new FormControl(''),
@@ -18,6 +18,7 @@ export class LoginFormComponent {
   });
 
   modalOptions: ModalOptions = {
+    id: 'login',
     title: 'Login',
     buttons: [
       { label: 'Login', type: 'submit'},
@@ -30,6 +31,7 @@ export class LoginFormComponent {
 
   userLogin() {
     console.log('Lets get that user logged in');
+    this.modalService.close(this);
   }
 
 }

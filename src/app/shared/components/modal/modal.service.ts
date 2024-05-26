@@ -1,46 +1,55 @@
-import { Injectable } from '@angular/core';
-import { ModalComponent } from './modal.component';
+import { ApplicationRef, ComponentRef, EnvironmentInjector, Injectable, Type, createComponent } from '@angular/core';
+import { Modal, ModalComponent } from './modal.component';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ModalService {
 
-  private modals: ModalComponent[] = [];
+  private dynamicModals = new Map<string, ComponentRef<unknown>>();
 
-  add(modal: ModalComponent) {
-      // ensure component has a unique id attribute
-      if (!modal.id || this.modals.find(x => x.id === modal.id)) {
-          throw new Error('modal must have a unique id attribute');
-      }
+  constructor(
+    private appRef: ApplicationRef,
+    private injector: EnvironmentInjector
+  ) {}
 
-      // add modal to array of active modals
-      this.modals.push(modal);
+
+  openDialog(modal: Type<unknown>) {
+
+    const modalComponent = createComponent(modal, {
+        environmentInjector: this.injector,
+    });
+    
+    this.dynamicModals.set(this.getModalId(modalComponent), modalComponent);
+    document.body.appendChild(modalComponent.location.nativeElement);
+    this.appRef.attachView(modalComponent.hostView);
+
   }
 
-  remove(modal: ModalComponent) {
-      // remove modal from array of active modals
-      this.modals = this.modals.filter(x => x === modal);
+  close(modal: Modal) {
+
+    const id = modal.modalOptions.id;
+    const ref = this.dynamicModals.get(id);
+
+    if (!ref) {
+      throw new Error(`modal '${id}' not found`);
+    }
+    this.dynamicModals.delete(id);
+    document.body.removeChild(ref.location.nativeElement);
+  }
+  
+  closeDialog(id: string) {
+
+    const modal = this.dynamicModals.get(id);
+
+    if (!modal) {
+      throw new Error(`modal '${id}' not found`);
+    }
+    this.dynamicModals.delete(id);
+    document.body.removeChild(modal.location.nativeElement);
   }
 
-  open(id: string) {
-      // open modal specified by id
-      const modal = this.modals.find(x => x.id === id);
-
-      if (!modal) {
-          throw new Error(`modal '${id}' not found`);
-      }
-
-      modal.openDialog();
+  private getModalId(modal: ComponentRef<unknown>) {
+    return (modal.instance as Modal).modalOptions.id;
   }
-
-  close(id: string) {
-      // open modal specified by id
-      const modal = this.modals.find(x => x.id === id);
-
-      if (!modal) {
-          throw new Error(`modal '${id}' not found`);
-      }
-
-      modal.closeDialog();
-  }}
+}

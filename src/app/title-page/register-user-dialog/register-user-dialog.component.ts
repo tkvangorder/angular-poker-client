@@ -6,13 +6,14 @@ import { CommonModule } from '@angular/common';
 @Component({
     selector: 'app-register-user',
     standalone: true,
-    templateUrl: './register-user-form.component.html',
-    styleUrl: './register-user-form.component.css',
+    templateUrl: './register-user-dialog.component.html',
+    styleUrl: './register-user-dialog.component.css',
     imports: [ModalComponent, CommonModule, ReactiveFormsModule]
 })
 export class RegisterUserFormComponent {
   
   modalOptions: ModalOptions = {
+    id: 'register-user',
     title: 'Register User',
     buttons: [
       { label: 'Register User', type: 'submit'},
