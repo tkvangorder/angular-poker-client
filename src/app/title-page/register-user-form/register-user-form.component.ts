@@ -1,19 +1,36 @@
 import { Component, Input } from '@angular/core';
-import { ModalComponent } from "../../shared/components/modal/modal.component";
+import { ModalComponent, ModalOptions } from "../../shared/components/modal/modal.component";
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-register-user',
     standalone: true,
     templateUrl: './register-user-form.component.html',
     styleUrl: './register-user-form.component.css',
-    imports: [ModalComponent]
+    imports: [ModalComponent, CommonModule, ReactiveFormsModule]
 })
 export class RegisterUserFormComponent {
+  
+  modalOptions: ModalOptions = {
+    title: 'Register User',
+    buttons: [
+      { label: 'Register User', type: 'submit'},
+      { label: 'Cancel', type: 'cancel' }
+    ]
+  };
+  registerForm = new FormGroup({
+    username: new FormControl(''),
+    password: new FormControl(''),
+    confirmPassword: new FormControl(''),
+    name: new FormControl(''),
+    email: new FormControl(''),
+    phone: new FormControl(''),
+    passcode: new FormControl(''),
+  });
 
-  @Input()
-  onCloseHandler: () => void = () => {};
-
-  @Input()
-  onSubmitHandler: (event: any) => void = (event) => {};
+  registerUser() {
+    console.log('Lets get that user registered');
+  }
 
 }

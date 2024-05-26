@@ -3,6 +3,7 @@ import { ModalComponent } from "../shared/components/modal/modal.component";
 import { UserService } from '../../user/user-service';
 import { LoginFormComponent } from "./login-form/login-form.component";
 import { RegisterUserFormComponent } from "./register-user-form/register-user-form.component";
+import { ModalService } from '../shared/components/modal/modal.service';
 
 @Component({
     selector: 'app-title-page',
@@ -13,26 +14,15 @@ import { RegisterUserFormComponent } from "./register-user-form/register-user-fo
 })
 export class TitlePageComponent {
 
-  constructor(private userService: UserService) {    
+  constructor(private userService: UserService, private modalService: ModalService) {
   }
 
-  showLogin = false;
-  showRegisterUser = false;
-
-  setShowLogin(showLogin: boolean) {  
-    this.showLogin = showLogin;
+  openLoginModal() {
+    this.modalService.open('login');
+  }
+  openRegisterUserModal() {
+    this.modalService.open('register-user');
   }
 
-  setShowRegisterUser(showRegisterUser: boolean) {
-    this.showRegisterUser = showRegisterUser;
-  }
-  onCloseLogin(): void {
-    console.log("onCloseLogin");
-    //this.setShowLogin(false);
-  }
-  onCloseRegisterUser(): void {
-    console.log("onCloseRegisterUser");
-//    this.setShowLogin(false);
-  }
 
 }

@@ -1,87 +1,84 @@
-<app-modal title="Register User" [onSubmitHandler]="onSubmitHandler">
-  <div class="content mb-4 grid grid-cols-3 gap-2 items-center">
-    <label class="label block text-right" htmlFor="username">
-      Username
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="username"
-      type="text"
-      placeholder="Username"
-    />
-    <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-    </p> -->
-    <label class="label block text-right" htmlFor="password">
-      Password
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="password"
-      type="password"
-      placeholder="Password"
-    />
-    <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-    </p> -->
-    <label class="label block text-right" htmlFor="confirmPassword">
-      Confirm Password
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="confirmPassword"
-      type="password"
-      placeholder="Confirm Password"
-    />
-    <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-    </p> -->
-    <label class="label block text-right" htmlFor="name">
-      Name
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="name"
-      type="text"
-      placeholder="John Doe"
-    />
-    <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-    </p> -->
-    <label class="label block text-right" htmlFor="email">
-      Email
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="email"
-      type="email"
-      placeholder="Email"
-    />
-    <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-    </p> -->
-    <label class="label block text-right" htmlFor="phone">
-      Phone
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="phone"
-      type="phone"
-      placeholder="(xxx) xxx-xxxx"
-    />
-    <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-    </p> -->
-    <label class="label block text-right" htmlFor="passcode">
-      Passcode
-    </label>
-    <input
-      class="input input-primary col-span-2 w-full max-w-xs"
-      id="passcode"
-      type="password"
-      placeholder="Passcode"
-    />
-    <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-    </p> -->
-  </div>
-  <div class="actions flex items-center justify-center gap-2">
-    <button class="btn btn-secondary" type="button" (click)="onCloseHandler()">
-      Cancel
-    </button>
-    <button class="btn btn-primary" type="submit">Login</button>
-  </div>  
+<app-modal title="Register User" id="register-user" [options]="modalOptions">
+
+  <form class="content" id="modal-form" [formGroup]="registerForm" (submit)="registerUser()">
+    <div class="content mb-4 grid grid-cols-3 gap-2 items-center">
+      <label class="label block text-right" htmlFor="username">
+        Username
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="username"
+        type="text"
+        placeholder="Username"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="password">
+        Password
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="password"
+        type="password"
+        placeholder="Password"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="confirmPassword">
+        Confirm Password
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="confirmPassword"
+        type="password"
+        placeholder="Confirm Password"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="name">
+        Name
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="name"
+        type="text"
+        placeholder="John Doe"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="email">
+        Email
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="email"
+        type="email"
+        placeholder="Email"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="phone">
+        Phone
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="phone"
+        type="phone"
+        placeholder="(xxx) xxx-xxxx"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="passcode">
+        Passcode
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="passcode"
+        type="password"
+        placeholder="Passcode"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+    </div>
+  </form> 
 </app-modal>

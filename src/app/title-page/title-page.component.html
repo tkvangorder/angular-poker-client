@@ -10,19 +10,14 @@
     />
   </div>
   <div class="flex items-center justify-center mb-4 gap-2">
-    <button class="btn btn-secondary" (click)="setShowRegisterUser(true)">
+    <button class="btn btn-secondary" (click)="openRegisterUserModal()">
       Register
     </button>
-    <button class="btn btn-primary" (click)="setShowLogin(true)">
+    <button class="btn btn-primary" (click)="openLoginModal()">
       Login
     </button>
   </div>
 </div>
 
-@if (showLogin) {
-  <app-login-form [onCloseHandler]="onCloseLogin"></app-login-form>
-}
-
-@if (showRegisterUser) {
-  <app-register-user [onCloseHandler]="onCloseRegisterUser"></app-register-user>
-}
+<app-register-user></app-register-user>
+<app-login-form></app-login-form>

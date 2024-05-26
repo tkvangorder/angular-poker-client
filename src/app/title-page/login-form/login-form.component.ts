@@ -1,20 +1,35 @@
 import { Component, Input } from '@angular/core';
-import { ModalComponent } from "../../shared/components/modal/modal.component";
-
+import { ModalComponent, ModalOptions } from "../../shared/components/modal/modal.component";
+import { ModalService } from '../../shared/components/modal/modal.service';
+import { CommonModule } from '@angular/common';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 @Component({
     selector: 'app-login-form',
     standalone: true,
     templateUrl: './login-form.component.html',
     styleUrl: './login-form.component.css',
-    imports: [ModalComponent]
+    imports: [ModalComponent, CommonModule, ReactiveFormsModule]
 })
 export class LoginFormComponent {
 
-  @Input()
-  onCloseHandler: () => void = () => {};
+  loginForm = new FormGroup({
+    username: new FormControl(''),
+    password: new FormControl(''),
+  });
 
-  @Input()
-  onSubmitHandler: (event: any) => void = (event) => {};
+  modalOptions: ModalOptions = {
+    title: 'Login',
+    buttons: [
+      { label: 'Login', type: 'submit'},
+      { label: 'Cancel', type: 'cancel' }
+    ]
+  };
 
+  constructor(private modalService: ModalService) {
+  }
+
+  userLogin() {
+    console.log('Lets get that user logged in');
+  }
 
 }
