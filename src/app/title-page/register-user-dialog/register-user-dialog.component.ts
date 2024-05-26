@@ -2,6 +2,8 @@ import { Component, Input } from '@angular/core';
 import { ModalComponent, ModalOptions } from "../../shared/components/modal/modal.component";
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ModalService } from '../../shared/components/modal/modal.service';
+import { UserService } from '../../../user/user-service';
 
 @Component({
     selector: 'app-register-user',
@@ -30,8 +32,23 @@ export class RegisterUserFormComponent {
     passcode: new FormControl(''),
   });
 
+  constructor(private modalService: ModalService, private userService: UserService) {
+  }
+
   registerUser() {
-    console.log('Lets get that user registered');
+    this.userService.registerUser(
+      {        
+        loginId: this.registerForm.value.username ?? undefined,
+        password: this.registerForm.value.password ?? undefined,
+        email: this.registerForm.value.email ?? undefined,
+        name: this.registerForm.value.name ?? undefined,
+        alias: this.registerForm.value.name ?? undefined,
+        phone: this.registerForm.value.phone ?? undefined,
+        serverPasscode: this.registerForm.value.passcode ?? undefined,
+      }
+    );
+    console.log("User is now : " + this.userService.getCurrentUser());
+    this.modalService.close(this);
   }
 
 }

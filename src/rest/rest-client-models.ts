@@ -1,20 +1,7 @@
-export interface RegisterUserRequest {
-  user: RestUser,
-  serverPasscode: string
-}
+import { User } from "../user/user-models";
 
 export interface AuthenticatedUserReponse {
-  user: RestUser,
+  user: User,
   token: string
-}
-
-export interface RestUser {
-  loginId: string,
-  password: string,
-  email: string,
-  alias?: string,
-  name: string,
-  phone: string,
-  roles: string[]
 }
 

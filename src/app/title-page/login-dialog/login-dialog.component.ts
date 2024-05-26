@@ -3,6 +3,7 @@ import { Modal, ModalComponent, ModalOptions } from "../../shared/components/mod
 import { ModalService } from '../../shared/components/modal/modal.service';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { UserService } from '../../../user/user-service';
 @Component({
     selector: 'app-login-form',
     standalone: true,
@@ -26,11 +27,16 @@ export class LoginDialogComponent implements Modal {
     ]
   };
 
-  constructor(private modalService: ModalService) {
+  constructor(private modalService: ModalService, private userService: UserService) {
   }
 
   userLogin() {
-    console.log('Lets get that user logged in');
+    console.log("this.loginForm.value" + this.loginForm.value);
+    this.userService.login(
+        this.loginForm.value.username ?? '',
+        this.loginForm.value.password ?? ''
+    );
+    console.log("User is now : " + this.userService.getCurrentUser());
     this.modalService.close(this);
   }
 

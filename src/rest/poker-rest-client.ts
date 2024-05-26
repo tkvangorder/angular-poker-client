@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from "axios";
-import { AuthenticatedUserReponse, RegisterUserRequest } from "./rest-client-models";
+import { AuthenticatedUserReponse } from "./rest-client-models";
+import { RegisterUserRequest } from "../user/user-models";
 
 class PokerRestClient {
 

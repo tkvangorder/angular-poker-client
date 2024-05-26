@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable, Output } from '@angular/core';
 import { pokerClient } from "../rest/poker-rest-client";
-import { User } from "./user-models";
+import { RegisterUserRequest, User } from "./user-models";
 
 @Injectable({
   providedIn: 'root'
@@ -18,13 +18,12 @@ export class UserService {
     return null;
   }
 
-  registerUser(registeredUser: {user: User, serverPasscode: string}) : User | null {
-    pokerClient.registerUser(registeredUser)
+  async registerUser(registeredUser: RegisterUserRequest) : Promise<User | null> {
+    await pokerClient.registerUser(registeredUser)
     .then((response) => {
       this.currentUser = {...response.data.user, token: response.data.token};
-      return this.currentUser;
-    })
-    return null;
+    });
+    return this.currentUser;
   }
 
   getCurrentUser() : User | null {
