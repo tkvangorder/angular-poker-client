@@ -1,21 +1,23 @@
 <app-modal [options]="modalOptions" >
-  <form class="content" id="modal-form" [formGroup]="loginForm" (submit)="userLogin()">
+  <form class="content" id="modal-form" [formGroup]="loginForm" (ngSubmit)="userLogin()">
     <div class="mb-4 grid grid-cols-3 gap-2 items-center">
-      <label class="label block text-right" htmlFor="username">
+      <label class="label block text-right" for="username">
         Username
       </label>
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="username"
+        formControlName="username"
         type="text"
         placeholder="Username"
       />
-      <label class="label block text-right" htmlFor="password">
+      <label class="label block text-right" for="password">
         Password
       </label>
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="password"
+        formControlName="password"
         type="password"
         placeholder="Password"
       />

@@ -15,7 +15,7 @@ export class LoginDialogComponent implements Modal {
 
   loginForm = new FormGroup({
     username: new FormControl(''),
-    password: new FormControl(''),
+    password: new FormControl('')
   });
 
   modalOptions: ModalOptions = {
@@ -31,13 +31,13 @@ export class LoginDialogComponent implements Modal {
   }
 
   userLogin() {
-    console.log("this.loginForm.value" + this.loginForm.value);
     this.userService.login(
         this.loginForm.value.username ?? '',
         this.loginForm.value.password ?? ''
-    );
-    console.log("User is now : " + this.userService.getCurrentUser());
-    this.modalService.close(this);
+    ).then((user) => {
+      console.log("User is now : " + JSON.stringify(this.userService.getCurrentUser()));
+      this.modalService.close(this);
+    });
   }
 
 }

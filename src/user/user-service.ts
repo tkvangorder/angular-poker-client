@@ -9,17 +9,19 @@ export class UserService {
 
   private currentUser: User | null = null;
 
-  login(loginId: string, password: string) : User | null {
-    pokerClient.login(loginId, password)
+  async login(loginId: string, password: string) : Promise<User> {
+    const newUser = await pokerClient.login(loginId, password)
     .then((response) => {
-      this.currentUser = {...response.data.user, token: response.data.token};
-      return this.currentUser;
-    })
-    return null;
+
+      return {...response.data.user, token: response.data.token};
+    });
+
+    this.currentUser = newUser;
+    return newUser;    
   }
 
   async registerUser(registeredUser: RegisterUserRequest) : Promise<User | null> {
-    await pokerClient.registerUser(registeredUser)
+    pokerClient.registerUser(registeredUser)
     .then((response) => {
       this.currentUser = {...response.data.user, token: response.data.token};
     });
