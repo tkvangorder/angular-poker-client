@@ -4,6 +4,7 @@ import { ModalService } from '../../shared/components/modal/modal.service';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../../user/user-service';
+import { Router } from '@angular/router';
 @Component({
     selector: 'app-login-form',
     standalone: true,
@@ -27,7 +28,7 @@ export class LoginDialogComponent implements Modal {
     ]
   };
 
-  constructor(private modalService: ModalService, private userService: UserService) {
+  constructor(private modalService: ModalService, private router: Router, private userService: UserService) {
   }
 
   userLogin() {
@@ -35,8 +36,9 @@ export class LoginDialogComponent implements Modal {
         this.loginForm.value.username ?? '',
         this.loginForm.value.password ?? ''
     ).subscribe(user => {
-      console.log("User is now : " + JSON.stringify(this.userService.getCurrentUser()));
+      console.log("User is now : " + JSON.stringify(this.userService.getCurrentUser()));      
       this.modalService.close(this);
+      this.router.navigate(['/home']);
     });
   }
 

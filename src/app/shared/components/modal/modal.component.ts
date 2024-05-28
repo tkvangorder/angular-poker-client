@@ -30,7 +30,6 @@ export class ModalComponent {
     }
 
     public closeDialog() {
-        console.log("yo yo yo")
         this.modalService.closeDialog(this.options.id);
     }
 }

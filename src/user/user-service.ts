@@ -17,23 +17,39 @@ export class UserService {
     return this.pokerClient.login(loginId, password).pipe(
       map((response) => {
         const newUser = {...response.user, token: response.token};
+        localStorage.setItem('currentUser', JSON.stringify(newUser));
         this.currentUser = newUser;
         return newUser;
       })
     );
+  }
+  logout() {
+    localStorage.removeItem('currentUser');
+    this.currentUser = null;
   }
 
   registerUser(registeredUser: RegisterUserRequest) : Observable<User> {
     return this.pokerClient.registerUser(registeredUser).pipe(
       map((response) => {
         const newUser = {...response.user, token: response.token};
+        localStorage.setItem('currentUser', JSON.stringify(newUser));
         this.currentUser = newUser;
         return newUser;
       })
     );
   }
 
+  isLoggedIn() : boolean {
+    return this.getCurrentUser() !== null;
+  }
+  
   getCurrentUser() : User | null {
+    if (!this.currentUser) {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        this.currentUser = JSON.parse(storedUser);
+      }
+    }
     return this.currentUser;
   }
 
