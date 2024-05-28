@@ -34,7 +34,7 @@ export class LoginDialogComponent implements Modal {
     this.userService.login(
         this.loginForm.value.username ?? '',
         this.loginForm.value.password ?? ''
-    ).then((user) => {
+    ).subscribe(user => {
       console.log("User is now : " + JSON.stringify(this.userService.getCurrentUser()));
       this.modalService.close(this);
     });

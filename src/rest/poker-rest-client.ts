@@ -1,24 +1,19 @@
-import axios, { AxiosInstance } from "axios";
 import { AuthenticatedUserReponse } from "./rest-client-models";
 import { RegisterUserRequest } from "../user/user-models";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from "@angular/core";
 
-class PokerRestClient {
+@Injectable({
+  providedIn: 'root'
+})
+export class PokerRestClient {
 
-  restClient: AxiosInstance;
-
-  constructor(baseUrl: string | null) {
-    const url = baseUrl || "http://localhost:8080";
-    this.restClient = axios.create({
-      baseURL: url,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });  
-  }
+  baseUrl: string = "http://localhost:8080";
+  constructor(private httpClient: HttpClient) { }
 
   login(loginId: string, password: string) {
 
-    return this.restClient.post<AuthenticatedUserReponse>("/auth/login",
+    return this.httpClient.post<AuthenticatedUserReponse>(`${this.baseUrl}/auth/login`,
       {
           loginId: loginId,
           password: password,
@@ -27,10 +22,8 @@ class PokerRestClient {
   }
 
   registerUser(registerUserRequest: RegisterUserRequest) {
-    return this.restClient.post<AuthenticatedUserReponse>("/auth/register", registerUserRequest);
+    return this.httpClient.post<AuthenticatedUserReponse>(`${this.baseUrl}/auth/register`, registerUserRequest);
   }
 
 }
-
-export const pokerClient = new PokerRestClient(null);
 

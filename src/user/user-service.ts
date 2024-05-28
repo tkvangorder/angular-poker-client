@@ -1,31 +1,36 @@
-import { EventEmitter, Injectable, Output } from '@angular/core';
-import { pokerClient } from "../rest/poker-rest-client";
+import { Injectable } from '@angular/core';
 import { RegisterUserRequest, User } from "./user-models";
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { PokerRestClient } from '../rest/poker-rest-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
 
+  constructor(private pokerClient : PokerRestClient) { }
+
   private currentUser: User | null = null;
 
-  async login(loginId: string, password: string) : Promise<User> {
-    const newUser = await pokerClient.login(loginId, password)
-    .then((response) => {
-
-      return {...response.data.user, token: response.data.token};
-    });
-
-    this.currentUser = newUser;
-    return newUser;    
+  login(loginId: string, password: string) : Observable<User> {
+    return this.pokerClient.login(loginId, password).pipe(
+      map((response) => {
+        const newUser = {...response.user, token: response.token};
+        this.currentUser = newUser;
+        return newUser;
+      })
+    );
   }
 
-  async registerUser(registeredUser: RegisterUserRequest) : Promise<User | null> {
-    pokerClient.registerUser(registeredUser)
-    .then((response) => {
-      this.currentUser = {...response.data.user, token: response.data.token};
-    });
-    return this.currentUser;
+  registerUser(registeredUser: RegisterUserRequest) : Observable<User> {
+    return this.pokerClient.registerUser(registeredUser).pipe(
+      map((response) => {
+        const newUser = {...response.user, token: response.token};
+        this.currentUser = newUser;
+        return newUser;
+      })
+    );
   }
 
   getCurrentUser() : User | null {
