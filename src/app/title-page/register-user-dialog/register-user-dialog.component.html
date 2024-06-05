@@ -8,6 +8,7 @@
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="username"
+        formControlName="username"
         type="text"
         placeholder="Username"
       />
@@ -19,6 +20,7 @@
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="password"
+        formControlName="password"
         type="password"
         placeholder="Password"
       />
@@ -30,6 +32,7 @@
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="confirmPassword"
+        formControlName="confirmPassword"
         type="password"
         placeholder="Confirm Password"
       />
@@ -41,6 +44,7 @@
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="name"
+        formControlName="name"
         type="text"
         placeholder="John Doe"
       />
@@ -52,6 +56,7 @@
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="email"
+        formControlName="email"
         type="email"
         placeholder="Email"
       />
@@ -63,6 +68,7 @@
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="phone"
+        formControlName="phone"
         type="phone"
         placeholder="(xxx) xxx-xxxx"
       />
@@ -74,11 +80,15 @@
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
         id="passcode"
+        formControlName="passcode"
         type="password"
         placeholder="Passcode"
       />
-      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-      </p> -->
+      @if(error) {
+        <p class="col-span-3 bg-error pl-4 text-error-content rounded-md">
+          {{ error }}
+        </p>
+      }
     </div>
   </form> 
 </app-modal>

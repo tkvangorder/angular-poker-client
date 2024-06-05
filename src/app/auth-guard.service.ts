@@ -12,3 +12,14 @@ export const authenticationGuard: CanActivateFn = (next, state) => {
   }
   return true;
 }
+
+export const loggedInGuard: CanActivateFn = (next, state) => {
+  const userService = inject(UserService);
+  const router = inject(Router);
+
+  if (userService.isLoggedIn()) {
+    router.navigate(['/home']);
+    return false;    
+  }
+  return true;
+}

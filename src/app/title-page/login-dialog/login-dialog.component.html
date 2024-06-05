@@ -21,9 +21,11 @@
         type="password"
         placeholder="Password"
       />
-      <!-- <p class="col-start-2 col-span-2 bg-error pl-4 text-error-content rounded-md">
-        {errors.password.message}
-      </p> -->
+      @if(error) {
+        <p class="col-span-3 bg-error pl-4 text-error-content rounded-md">
+          {{ error }}
+        </p>
+      }
     </div>
   </form>
 </app-modal>
