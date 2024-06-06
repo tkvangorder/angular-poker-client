@@ -12,7 +12,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: ErrorHandler,
       useClass: GlobalErrorHandler,
-      deps: [] // Add any dependencies here needed for the error handler.
-    }
-  ]
+      deps: [], // Add any dependencies here needed for the error handler.
+    },
+  ],
 };

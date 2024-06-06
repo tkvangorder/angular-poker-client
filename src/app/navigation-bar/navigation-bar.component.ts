@@ -3,29 +3,30 @@ import { UserService } from '../../user/user-service';
 import { Observable, map } from 'rxjs';
 import { User } from '../../user/user-models';
 import { AsyncPipe } from '@angular/common';
+import { ToastDisplayComponent } from '../toaster/toast-display.component';
 
 @Component({
   selector: 'app-navigation-bar',
   standalone: true,
-  imports: [AsyncPipe],
   templateUrl: './navigation-bar.component.html',
+  imports: [AsyncPipe, ToastDisplayComponent],
 })
 export class NavigationBarComponent {
-
   @ViewChild('profileDropDown')
   profileDropDown!: ElementRef;
 
-  constructor(public userService: UserService) {
-  }
+  constructor(public userService: UserService) {}
 
   userGreetings(): Observable<string> {
-    return this.userService.observeCurrentUser().pipe(map(user => {
-      if (user) {
-        return `Hello ${user.name}`;
-      } else {
-        return '';
-      }
-    }))
+    return this.userService.observeCurrentUser().pipe(
+      map((user) => {
+        if (user) {
+          return `Hello ${user.name}`;
+        } else {
+          return '';
+        }
+      })
+    );
   }
 
   logout() {

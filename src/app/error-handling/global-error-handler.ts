@@ -1,8 +1,15 @@
-import { ErrorHandler } from "@angular/core";
+import { ErrorHandler, inject } from '@angular/core';
+import { ToasterService } from '../toaster/toaster.service';
 
 export class GlobalErrorHandler implements ErrorHandler {
-  handleError(error: any): void {
-    throw new Error("Method not implemented.");
-  }
+  private toastService = inject(ToasterService);
 
+  handleError(error: any): void {
+    this.toastService.displayToast({
+      message: error,
+      type: 'error',
+    });
+
+    console.log(error);
+  }
 }
