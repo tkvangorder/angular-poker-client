@@ -1,23 +1,23 @@
 import { Injectable } from '@angular/core';
-import { RegisterUserRequest, User } from "./user-models";
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { RegisterUserRequest, User } from './user-models';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { PokerRestClient } from '../rest/poker-rest-client';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UserService {
+  constructor(private pokerClient: PokerRestClient, private router: Router) {}
 
-  constructor(private pokerClient : PokerRestClient, private router: Router) { }
+  private currentUser$ = new BehaviorSubject<User | undefined>(undefined);
 
-  private currentUser$ = new BehaviorSubject<User | null>(null);
-
-  login(loginId: string, password: string) : Observable<User> {
+  login(loginId: string, password: string): Observable<User> {
     return this.pokerClient.login(loginId, password).pipe(
       map((response) => {
-        const newUser = {...response.user, token: response.token};
+        const newUser = { ...response.user, token: response.token };
         localStorage.setItem('currentUser', JSON.stringify(newUser));
         this.currentUser$.next(newUser);
         return newUser;
@@ -26,14 +26,14 @@ export class UserService {
   }
   logout() {
     localStorage.removeItem('currentUser');
-    this.currentUser$.next(null);
+    this.currentUser$.next(undefined);
     this.router.navigate(['/']);
   }
 
-  registerUser(registeredUser: RegisterUserRequest) : Observable<User> {
+  registerUser(registeredUser: RegisterUserRequest): Observable<User> {
     return this.pokerClient.registerUser(registeredUser).pipe(
       map((response) => {
-        const newUser = {...response.user, token: response.token};
+        const newUser = { ...response.user, token: response.token };
         localStorage.setItem('currentUser', JSON.stringify(newUser));
         this.currentUser$.next(newUser);
         return newUser;
@@ -41,11 +41,11 @@ export class UserService {
     );
   }
 
-  isLoggedIn() : boolean {
-    return this.currentUser$.getValue() !== null;
+  isLoggedIn(): boolean {
+    return this.currentUser$.getValue() !== undefined;
   }
 
-  getCurrentUser() : User | null {
+  getCurrentUser(): User | undefined {
     let user = this.currentUser$.getValue();
     if (!user) {
       const storedUser = localStorage.getItem('currentUser');
@@ -56,7 +56,7 @@ export class UserService {
     return user;
   }
 
-  observeCurrentUser() : Observable<User | null> {
+  observeCurrentUser(): Observable<User | undefined> {
     if (!this.currentUser$.getValue()) {
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
@@ -66,5 +66,4 @@ export class UserService {
 
     return this.currentUser$.asObservable();
   }
-
 }

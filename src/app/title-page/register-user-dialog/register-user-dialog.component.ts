@@ -6,8 +6,10 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ModalService } from '../../shared/components/modal/modal.service';
-import { UserService } from '../../../user/user-service';
+import { UserService } from '../../user/user-service';
 import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
+import { ValidationError } from '../../error-handling/error-models';
 
 @Component({
   selector: 'app-register-user',
@@ -54,13 +56,16 @@ export class RegisterUserFormComponent {
         phone: this.registerForm.value.phone ?? undefined,
         serverPasscode: this.registerForm.value.passcode ?? undefined,
       })
+      .pipe(
+        catchError((error: ValidationError) => {
+          this.error = error.message;
+          return throwError(() => error);
+        })
+      )
       .subscribe({
         next: (user) => {
           this.modalService.close(this);
           this.router.navigate(['/home']);
-        },
-        error: (error) => {
-          this.error = error.error.message;
         },
       });
   }

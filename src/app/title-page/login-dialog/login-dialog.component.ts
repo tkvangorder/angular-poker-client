@@ -7,8 +7,10 @@ import {
 import { ModalService } from '../../shared/components/modal/modal.service';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { UserService } from '../../../user/user-service';
+import { UserService } from '../../user/user-service';
 import { Router } from '@angular/router';
+import { catchError, of, throwError } from 'rxjs';
+import { ValidationError } from '../../error-handling/error-models';
 @Component({
   selector: 'app-login-form',
   standalone: true,
@@ -44,13 +46,16 @@ export class LoginDialogComponent implements Modal {
         this.loginForm.value.username ?? '',
         this.loginForm.value.password ?? ''
       )
+      .pipe(
+        catchError((error: ValidationError) => {
+          this.error = error.message;
+          return throwError(() => error);
+        })
+      )
       .subscribe({
         next: (user) => {
           this.modalService.close(this);
           this.router.navigate(['/home']);
-        },
-        error: (error) => {
-          this.error = 'Error logging in. Please try again.';
         },
       });
   }
