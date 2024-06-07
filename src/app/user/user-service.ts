@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { RegisterUserRequest, User } from './user-models';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { PokerRestClient } from '../rest/poker-rest-client';
 import { Router } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',

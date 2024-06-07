@@ -1,7 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { UserService } from '../user/user-service';
 import { Observable, map } from 'rxjs';
-import { User } from '../user/user-models';
 import { AsyncPipe } from '@angular/common';
 import { ToastDisplayComponent } from '../toaster/toast-display.component';
 

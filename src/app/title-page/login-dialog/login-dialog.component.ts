@@ -3,8 +3,8 @@ import {
   Modal,
   ModalComponent,
   ModalOptions,
-} from '../../shared/components/modal/modal.component';
-import { ModalService } from '../../shared/components/modal/modal.service';
+} from '../../modal/modal.component';
+import { ModalService } from '../../modal/modal.service';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../user/user-service';
@@ -15,7 +15,6 @@ import { ValidationError } from '../../error-handling/error-models';
   selector: 'app-login-form',
   standalone: true,
   templateUrl: './login-dialog.component.html',
-  styleUrl: './login-dialog.component.css',
   imports: [ModalComponent, CommonModule, ReactiveFormsModule],
 })
 export class LoginDialogComponent implements Modal {
