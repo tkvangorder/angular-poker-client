@@ -14,7 +14,7 @@
       </summary>
       <ul
         tabIndex="0"
-        class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content menu-dropdown-toggle bg-base-100 rounded-box w-52"
+        class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
       >
         <li>
           <a>Profile</a>
@@ -25,7 +25,24 @@
         <li>
           <a (click)="logout()">Logout</a>
         </li>
-      </ul>
+        <li>
+          <details class="dropdown dropdown-hover">
+            <summary>Theme</summary>
+            <ul tabindex="0" class="dropdown-hover z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-52">
+              <li><input type="radio" name="theme-dropdown" onclick="" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="forest" value="forest"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="night" value="night"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="coffee" value="coffee"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="dim" value="dim"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="halloween" value="halloween"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="cupcake" value="cupcake"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="emerald" value="emerald"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="fantasy" value="fantasy"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="wireframe" value="wireframe"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="winter" value="winter"/></li>
+            </ul>
+          </details>
+        </li>
+      </ul>  
     </details>
   </div>
 </div>

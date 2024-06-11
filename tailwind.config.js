@@ -11,20 +11,16 @@ module.exports = {
   },
   daisyui: {
     themes: [
-      {
-        mytheme: {        
-          "primary": "#f59e0b",
-          "secondary": "#d1d5db",
-          "accent": "#f3f4f6",
-          "neutral": "#e5e7eb",
-          "base-100": "#111827",
-          "info": "#009fff",
-          "success": "#00e76e",
-          "warning": "#bb6200",
-          "error": "#ff6773",
-          "dark": "#1f2937"
-        }
-      }
+      "coffee",
+      "forest",
+      "night",
+      "dim",
+      "halloween",
+      "cupcake",
+      "emerald",
+      "fantasy",
+      "wireframe",
+      "winter"
     ],
     darkTheme: "dark", // name of one of the included themes for dark mode
     base: true, // applies background color and foreground color for root element by default
