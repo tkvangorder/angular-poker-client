@@ -1,1 +1,20 @@
-<p>home-page works!</p>
+
+<div class="flex flex-col">
+  <div class="flex justify-between items-center mb-4 p-5">
+    <div class="flex items-center">
+      <input type="checkbox" id="completedGames" name="completedGames" class="checkbox checkbox-primary">
+      <label class="label" for="completedGames">Show Completed Games</label>
+    </div>
+    <button class="btn btn-secondary">
+      Create New Game
+    </button>
+  </div>
+  <div class="flex flex-col md:flex-row">
+    <div class="md:w-1/2 text-center">
+      <app-cash-game-list></app-cash-game-list>
+    </div>
+    <div class="w-full md:w-1/2 bg-gray-200 text-center py-4">
+      <app-cash-game-details></app-cash-game-details>
+    </div>
+  </div>
+</div>

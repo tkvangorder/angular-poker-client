@@ -3,6 +3,8 @@ import { UserService } from '../user/user-service';
 import { Observable, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { ToastDisplayComponent } from '../toaster/toast-display.component';
+import { ModalService } from '../modal/modal.service';
+import { AboutComponent } from './about/about/about.component';
 
 @Component({
   selector: 'app-navigation-bar',
@@ -14,7 +16,10 @@ export class NavigationBarComponent {
   @ViewChild('profileDropDown')
   profileDropDown!: ElementRef;
 
-  constructor(public userService: UserService) {}
+  constructor(
+    public userService: UserService,
+    private modalService: ModalService
+  ) {}
 
   userGreetings(): Observable<string> {
     return this.userService.observeCurrentUser().pipe(
@@ -26,6 +31,10 @@ export class NavigationBarComponent {
         }
       })
     );
+  }
+
+  openAbout() {
+    this.modalService.openDialog(AboutComponent);
   }
 
   logout() {
