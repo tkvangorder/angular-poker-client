@@ -19,7 +19,7 @@ import { CalendarUtils } from '../../../lib/calendar-utils';
   selector: 'app-create-cash-game-dialog',
   standalone: true,
   templateUrl: './create-cash-game-dialog.component.html',
-  imports: [ModalComponent, ReactiveFormsModule],
+  imports: [ModalComponent, CommonModule, ReactiveFormsModule],
 })
 export class CreateCashGameDialogComponent implements Modal {
   modalOptions: ModalOptions = {
@@ -33,6 +33,9 @@ export class CreateCashGameDialogComponent implements Modal {
 
   gameConfigurationForm: FormGroup;
 
+  today: string;
+  now: string;
+
   public error: string | undefined;
 
   constructor(
@@ -43,11 +46,13 @@ export class CreateCashGameDialogComponent implements Modal {
   ) {
     const currentDate = new Date();
 
+    this.today = formatDate(currentDate, 'yyyy-MM-dd', 'en');
+    this.now = formatDate(currentDate, 'HH:mm', 'en');
     this.gameConfigurationForm = new FormGroup({
       name: new FormControl(''),
       gameType: new FormControl("Texas Hold'em"),
-      startDate: new FormControl(formatDate(currentDate, 'yyyy-MM-dd', 'en')),
-      startTime: new FormControl(formatDate(currentDate, 'HH:mm', 'en')),
+      startDate: new FormControl(this.today),
+      startTime: new FormControl(this.now),
       buyIn: new FormControl(''),
       smallBlind: new FormControl(''),
       bigBlind: new FormControl(''),

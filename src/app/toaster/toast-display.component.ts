@@ -1,9 +1,11 @@
 import {
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
   ViewChild,
   ViewContainerRef,
+  inject,
 } from '@angular/core';
 import { ToasterService } from './toaster.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -19,6 +21,8 @@ export class ToastDisplayComponent implements OnInit {
   @ViewChild('toaster', { read: ViewContainerRef, static: true })
   toastContainer!: ViewContainerRef;
 
+  changeDetectorRef = inject(ChangeDetectorRef);
+
   constructor(
     private toastService: ToasterService,
     private destroyRef: DestroyRef
@@ -33,9 +37,10 @@ export class ToastDisplayComponent implements OnInit {
           );
           toastComponent.instance.message = toastMessage.message;
           toastComponent.instance.type = toastMessage.type;
+          this.changeDetectorRef.detectChanges();
           setTimeout(() => {
             toastComponent.destroy();
-          }, 3000);
+          }, 5000);
         },
       });
   }

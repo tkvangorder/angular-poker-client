@@ -20,11 +20,10 @@
       <select
         class="select select-primary col-span-2 w-full max-w-xs"
         id="gameType"
+        formControlName="gameType"
         placeholder="Game Type"
-        disabled
       >
         <option
-          formControlName="gameType"
           type="text" 
           selected value="Texas Hold'em">
           Texas Hold'em
@@ -40,6 +39,7 @@
         id="startDate"
         formControlName="startDate"
         type="date"
+        [min]="today"
       />
       <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
       </p> -->
@@ -51,6 +51,7 @@
         id="startTime"
         formControlName="startTime"
         type="time"
+        [min]="now"
       />
       <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
       </p> -->
