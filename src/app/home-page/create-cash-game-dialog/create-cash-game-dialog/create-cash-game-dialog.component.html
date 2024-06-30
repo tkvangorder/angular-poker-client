@@ -1,1 +1,98 @@
-<p>create-cash-game-dialog works!</p>
+<app-modal title="Create Cash Game" id="create-cash-game" [options]="modalOptions">
+
+  <form class="content" id="modal-form" [formGroup]="gameConfigurationForm" (submit)="createGame()">
+    <div class="content mb-4 grid grid-cols-3 gap-2 items-center">
+      <label class="label block text-right" htmlFor="name">
+        Name
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="name"
+        formControlName="name"
+        type="text"
+        placeholder="Name"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="gameType">
+        Game Type
+      </label>
+      <select
+        class="select select-primary col-span-2 w-full max-w-xs"
+        id="gameType"
+        placeholder="Game Type"
+        disabled
+      >
+        <option
+          formControlName="gameType"
+          type="text" 
+          selected value="Texas Hold'em">
+          Texas Hold'em
+        </option>
+      </select>
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="startDate">
+        Start Date
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="startDate"
+        formControlName="startDate"
+        type="date"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="startTime">
+        Start Time
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="startTime"
+        formControlName="startTime"
+        type="time"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="buyIn">
+        Buy-In (Dollars)
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="buyIn"
+        formControlName="buyIn"
+        type="number"
+        placeholder="Buy-In"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="smallBlind">
+        Small Blind (Dollars)
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="smallBlind"
+        formControlName="smallBlind"
+        type="number"
+        placeholder=".25"
+      />
+      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
+      </p> -->
+      <label class="label block text-right" htmlFor="bigBlind">
+        Big Blind (Dollars)
+      </label>
+      <input
+        class="input input-primary col-span-2 w-full max-w-xs"
+        id="bigBlind"
+        formControlName="bigBlind"
+        type="number"
+        placeholder=".50"
+      />
+      @if(error) {
+        <p class="col-span-3 bg-error pl-4 text-error-content rounded-md">
+          {{ error }}
+        </p>
+      }
+    </div>
+  </form> 
+</app-modal>

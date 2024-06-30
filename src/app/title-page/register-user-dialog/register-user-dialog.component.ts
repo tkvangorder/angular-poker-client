@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { ModalComponent, ModalOptions } from '../../modal/modal.component';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';

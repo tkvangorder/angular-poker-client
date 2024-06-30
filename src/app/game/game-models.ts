@@ -1,8 +1,19 @@
 import { User } from '../user/user-models';
 
-export type GameStatus = 'ACTIVE' | 'COMPLETED' | 'PAUSED' | 'SCHEDULED';
-export type GameFormat = 'CASH' | 'TOURNAMENT';
-export type GameType = 'TEXAS_HOLDEM';
+export enum GameStatus {
+  'ACTIVE',
+  'COMPLETED',
+  'PAUSED',
+  'SCHEDULED',
+}
+
+export enum GameFormat {
+  'CASH',
+  'TOURNAMENT',
+}
+export enum GameType {
+  'TEXAS_HOLDEM',
+}
 
 export type PlayerStatus =
   | 'ACTIVE'
@@ -39,6 +50,15 @@ export interface Game {
   tables: Table[];
 }
 
+export interface CashGameConfiguration {
+  name: string | undefined;
+  gameType: GameType | undefined;
+  startTimestamp: Date;
+  buyInAmount: number;
+  smallBlind: number;
+  bigBlind: number;
+}
+
 export interface CashGameDetails {
   id: string;
   name: string;
@@ -52,7 +72,7 @@ export interface CashGameDetails {
 }
 
 export class CashGame implements Game {
-  public readonly format: GameFormat = 'CASH';
+  public readonly format = GameFormat.CASH;
 
   constructor(
     public id: string,
