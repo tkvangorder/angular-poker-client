@@ -55,15 +55,17 @@
       />
       <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
       </p> -->
-      <label class="label block text-right" htmlFor="buyIn">
-        Buy-In (Dollars)
+      <label class="label block text-right" htmlFor="maxBuyIn">
+        Max Buy-In (Dollars)
       </label>
       <input
         class="input input-primary col-span-2 w-full max-w-xs"
-        id="buyIn"
-        formControlName="buyIn"
+        id="maxBuyIn"
+        formControlName="maxBuyIn"
         type="number"
-        placeholder="Buy-In"
+        inputmode="decimal"
+        (blur)="formatCurrency($event)"
+        placeholder="Max Buy-In"
       />
       <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
       </p> -->
@@ -75,6 +77,8 @@
         id="smallBlind"
         formControlName="smallBlind"
         type="number"
+        inputmode="decimal"
+        (blur)="formatCurrency($event)"
         placeholder=".25"
       />
       <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
@@ -87,6 +91,8 @@
         id="bigBlind"
         formControlName="bigBlind"
         type="number"
+        inputmode="decimal"
+        (blur)="formatCurrency($event)"
         placeholder=".50"
       />
       @if(error) {

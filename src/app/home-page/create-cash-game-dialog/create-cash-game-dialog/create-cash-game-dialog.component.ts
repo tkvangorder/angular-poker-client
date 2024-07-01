@@ -14,6 +14,7 @@ import { ValidationError } from '../../../error-handling/error-models';
 import { CashGameService } from '../../../game/cash-game.service';
 import { GameType } from '../../../game/game-models';
 import { CalendarUtils } from '../../../lib/calendar-utils';
+import { LangUtils } from '../../../lib/lang.utils';
 
 @Component({
   selector: 'app-create-cash-game-dialog',
@@ -53,9 +54,9 @@ export class CreateCashGameDialogComponent implements Modal {
       gameType: new FormControl("Texas Hold'em"),
       startDate: new FormControl(this.today),
       startTime: new FormControl(this.now),
-      buyIn: new FormControl(''),
-      smallBlind: new FormControl(''),
-      bigBlind: new FormControl(''),
+      maxBuyIn: new FormControl<number>(60.0),
+      smallBlind: new FormControl<number>(0.25),
+      bigBlind: new FormControl<number>(0.5),
     });
   }
 
@@ -70,9 +71,11 @@ export class CreateCashGameDialogComponent implements Modal {
           this.gameConfigurationForm.value.startDate ?? undefined,
           this.gameConfigurationForm.value.startTime ?? undefined
         ),
-        buyInAmount: this.gameConfigurationForm.value.buyIn ?? undefined,
-        smallBlind: this.gameConfigurationForm.value.smallBlind ?? undefined,
-        bigBlind: this.gameConfigurationForm.value.bigBlind ?? undefined,
+        maxBuyIn: LangUtils.asCents(this.gameConfigurationForm.value.maxBuyIn),
+        smallBlind: LangUtils.asCents(
+          this.gameConfigurationForm.value.smallBlind
+        ),
+        bigBlind: LangUtils.asCents(this.gameConfigurationForm.value.bigBlind),
       })
       .pipe(
         catchError((error: ValidationError) => {
@@ -85,6 +88,11 @@ export class CreateCashGameDialogComponent implements Modal {
           this.modalService.close(this);
         },
       });
+  }
+
+  formatCurrency(event: FocusEvent) {
+    const inputElement = event.target as HTMLInputElement;
+    inputElement.value = LangUtils.parseCurrency(inputElement.value);
   }
 
   stringToType(gameType: string | undefined): GameType {

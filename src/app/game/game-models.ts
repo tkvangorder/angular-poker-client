@@ -54,7 +54,7 @@ export interface CashGameConfiguration {
   name: string | undefined;
   gameType: GameType | undefined;
   startTimestamp: Date;
-  buyInAmount: number;
+  maxBuyIn: number;
   smallBlind: number;
   bigBlind: number;
 }
@@ -64,11 +64,11 @@ export interface CashGameDetails {
   name: string;
   gameType: GameType;
   startTimestamp: Date;
-  buyInAmount: number;
+  maxBuyIn: number;
   owner: User;
   smallBlind: number;
   bigBlind: number;
-  numberOfPlayers: number;
+  players: Player[];
 }
 
 export class CashGame implements Game {
@@ -86,6 +86,6 @@ export class CashGame implements Game {
     public tables: Table[],
     public smallBlind: number,
     public bigBlind: number,
-    public buyInAmount: number
+    public maxBuyIn: number
   ) {}
 }
