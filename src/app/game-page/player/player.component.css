@@ -1,0 +1,9 @@
+.player {
+  width: 140px;
+}
+
+.player-details {
+  border-left: 15px solid green;
+  border-top-left-radius: 150px;
+  border-bottom-left-radius: 150px;
+}
