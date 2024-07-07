@@ -34,6 +34,7 @@
 
 .players .player {
   position: absolute;
+  width: 20%;
 }
 
 .players .player.player-1 {
