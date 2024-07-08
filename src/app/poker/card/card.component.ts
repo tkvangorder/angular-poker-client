@@ -1,6 +1,8 @@
-import { Component, Input } from '@angular/core';
-import { CardSuit, CardValue } from '../poker-models';
+import { Component, ElementRef, Input, OnInit, inject } from '@angular/core';
+import { CardSuitString, CardValueString } from '../poker-models';
 import { CommonModule } from '@angular/common';
+import { Observable } from 'rxjs';
+import { CardService } from './card.service';
 
 @Component({
   selector: 'app-card',
@@ -9,36 +11,52 @@ import { CommonModule } from '@angular/common';
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
 })
-export class CardComponent {
+export class CardComponent implements OnInit {
   @Input()
-  public cardValue?:
-    | '2'
-    | '3'
-    | '4'
-    | '5'
-    | '6'
-    | '7'
-    | '8'
-    | '9'
-    | '10'
-    | 'JACK'
-    | 'QUEEN'
-    | 'KING'
-    | 'ACE';
+  public cardValue?: CardValueString;
+
   @Input()
-  public cardSuit?: 'HEARTS' | 'DIAMONDS' | 'CLUBS' | 'SPADES';
+  public cardSuit?: CardSuitString;
+
   @Input()
   public isHidden: boolean = false;
 
-  computeCardImage(): string {
-    if (this.isHidden) {
-      return "url('../../../assets/cards/back_2.svg')";
-    } else if (this.cardValue && this.cardSuit) {
-      const url = `url('../../../assets/cards/fronts/${this.cardSuit.toLowerCase()}_${this.cardValue.toLowerCase()}.svg')`;
-      console.log(url);
-      return `url(\'../../../assets/cards/fronts/${this.cardSuit.toLowerCase()}_${this.cardValue.toLowerCase()}.svg\')`;
+  @Input()
+  public onlyShowTop: boolean = false;
+
+  private cardService = inject(CardService);
+  private elementRef = inject(ElementRef);
+
+  ngOnInit(): void {
+    let cardImage$: Observable<SVGElement>;
+    if (this.onlyShowTop) {
+      if (this.isHidden) {
+        cardImage$ = this.cardService.getTopCardImage('hidden');
+      } else if (this.cardValue && this.cardSuit) {
+        cardImage$ = this.cardService.getTopCardImage(
+          this.cardValue,
+          this.cardSuit
+        );
+      } else {
+        cardImage$ = this.cardService.getTopCardImage('blank');
+      }
+      cardImage$.subscribe((cardSvg) => {
+        this.elementRef.nativeElement.appendChild(cardSvg);
+      });
     } else {
-      return "url('../../../assets/cards/blank_card.svg')";
+      if (this.isHidden) {
+        cardImage$ = this.cardService.getCardImage('hidden');
+      } else if (this.cardValue && this.cardSuit) {
+        cardImage$ = this.cardService.getCardImage(
+          this.cardValue,
+          this.cardSuit
+        );
+      } else {
+        cardImage$ = this.cardService.getCardImage('blank');
+      }
+      cardImage$.subscribe((cardSvg) => {
+        this.elementRef.nativeElement.appendChild(cardSvg);
+      });
     }
   }
 }

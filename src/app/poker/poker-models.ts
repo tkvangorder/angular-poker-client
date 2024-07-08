@@ -1,3 +1,18 @@
+export type CardValueString =
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
+  | '10'
+  | 'JACK'
+  | 'QUEEN'
+  | 'KING'
+  | 'ACE';
+
 export enum CardValue {
   TWO = '2',
   THREE = '3',
@@ -13,6 +28,8 @@ export enum CardValue {
   KING = 'K',
   ACE = 'A',
 }
+
+export type CardSuitString = 'HEARTS' | 'DIAMONDS' | 'CLUBS' | 'SPADES';
 
 export enum CardSuit {
   HEARTS = 'H',
