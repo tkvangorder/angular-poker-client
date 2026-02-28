@@ -4,11 +4,15 @@
 }
 
 .player-details {
+  background-color: rgba(32, 24, 18, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-top-left-radius: 150px;
   border-bottom-left-radius: 150px;
+  color: #fff;
+  padding: 2px 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .player-image {
-  border-radius: 150px;
   border-radius: 150px;
 }

@@ -1,105 +1,102 @@
 <app-modal title="Create Cash Game" id="create-cash-game" [options]="modalOptions">
 
   <form class="content" id="modal-form" [formGroup]="gameConfigurationForm" (submit)="createGame()">
-    <div class="content mb-4 grid grid-cols-3 gap-2 items-center">
-      <label class="label block text-right" htmlFor="name">
-        Name
-      </label>
-      <input
-        class="input input-primary col-span-2 w-full max-w-xs"
-        id="name"
-        formControlName="name"
-        type="text"
-        placeholder="Name"
-      />
-      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-      </p> -->
-      <label class="label block text-right" htmlFor="gameType">
-        Game Type
-      </label>
-      <select
-        class="select select-primary col-span-2 w-full max-w-xs"
-        id="gameType"
-        formControlName="gameType"
-        placeholder="Game Type"
-      >
-        <option
-          type="text" 
-          selected value="Texas Hold'em">
-          Texas Hold'em
-        </option>
-      </select>
-      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-      </p> -->
-      <label class="label block text-right" htmlFor="startDate">
-        Start Date
-      </label>
-      <input
-        class="input input-primary col-span-2 w-full max-w-xs"
-        id="startDate"
-        formControlName="startDate"
-        type="date"
-        [min]="today"
-      />
-      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-      </p> -->
-      <label class="label block text-right" htmlFor="startTime">
-        Start Time
-      </label>
-      <input
-        class="input input-primary col-span-2 w-full max-w-xs"
-        id="startTime"
-        formControlName="startTime"
-        type="time"
-        [min]="now"
-      />
-      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-      </p> -->
-      <label class="label block text-right" htmlFor="maxBuyIn">
-        Max Buy-In (Dollars)
-      </label>
-      <input
-        class="input input-primary col-span-2 w-full max-w-xs"
-        id="maxBuyIn"
-        formControlName="maxBuyIn"
-        type="number"
-        inputmode="decimal"
-        (blur)="formatCurrency($event)"
-        placeholder="Max Buy-In"
-      />
-      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-      </p> -->
-      <label class="label block text-right" htmlFor="smallBlind">
-        Small Blind (Dollars)
-      </label>
-      <input
-        class="input input-primary col-span-2 w-full max-w-xs"
-        id="smallBlind"
-        formControlName="smallBlind"
-        type="number"
-        inputmode="decimal"
-        (blur)="formatCurrency($event)"
-        placeholder=".25"
-      />
-      <!-- <p class="col-start-2 col-span-2 bg-error pl-2 pr-2 text-error-content rounded-md">
-      </p> -->
-      <label class="label block text-right" htmlFor="bigBlind">
-        Big Blind (Dollars)
-      </label>
-      <input
-        class="input input-primary col-span-2 w-full max-w-xs"
-        id="bigBlind"
-        formControlName="bigBlind"
-        type="number"
-        inputmode="decimal"
-        (blur)="formatCurrency($event)"
-        placeholder=".50"
-      />
+    <div class="space-y-4">
+      <div class="form-field">
+        <label class="label" for="name">
+          <span class="label-text">Name</span>
+        </label>
+        <input
+          class="input input-bordered w-full"
+          id="name"
+          formControlName="name"
+          type="text"
+          placeholder="Name"
+        />
+      </div>
+      <div class="form-field">
+        <label class="label" for="gameType">
+          <span class="label-text">Game Type</span>
+        </label>
+        <select
+          class="select select-bordered w-full"
+          id="gameType"
+          formControlName="gameType"
+        >
+          <option selected value="Texas Hold'em">Texas Hold'em</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="label" for="startDate">
+          <span class="label-text">Start Date</span>
+        </label>
+        <input
+          class="input input-bordered w-full"
+          id="startDate"
+          formControlName="startDate"
+          type="date"
+          [min]="today"
+        />
+      </div>
+      <div class="form-field">
+        <label class="label" for="startTime">
+          <span class="label-text">Start Time</span>
+        </label>
+        <input
+          class="input input-bordered w-full"
+          id="startTime"
+          formControlName="startTime"
+          type="time"
+          [min]="now"
+        />
+      </div>
+      <div class="form-field">
+        <label class="label" for="maxBuyIn">
+          <span class="label-text">Max Buy-In (Dollars)</span>
+        </label>
+        <input
+          class="input input-bordered w-full"
+          id="maxBuyIn"
+          formControlName="maxBuyIn"
+          type="number"
+          inputmode="decimal"
+          (blur)="formatCurrency($event)"
+          placeholder="Max Buy-In"
+        />
+      </div>
+      <div class="form-field">
+        <label class="label" for="smallBlind">
+          <span class="label-text">Small Blind (Dollars)</span>
+        </label>
+        <input
+          class="input input-bordered w-full"
+          id="smallBlind"
+          formControlName="smallBlind"
+          type="number"
+          inputmode="decimal"
+          (blur)="formatCurrency($event)"
+          placeholder=".25"
+        />
+      </div>
+      <div class="form-field">
+        <label class="label" for="bigBlind">
+          <span class="label-text">Big Blind (Dollars)</span>
+        </label>
+        <input
+          class="input input-bordered w-full"
+          id="bigBlind"
+          formControlName="bigBlind"
+          type="number"
+          inputmode="decimal"
+          (blur)="formatCurrency($event)"
+          placeholder=".50"
+        />
+      </div>
       @if(error) {
-        <p class="col-span-3 bg-error pl-4 text-error-content rounded-md">
+        <p class="bg-error pl-4 py-2 text-error-content rounded-md text-sm">
           {{ error }}
         </p>
       }
     </div>
-  </form> 
+  </form>
 </app-modal>

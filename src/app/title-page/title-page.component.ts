@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ModalComponent } from '../modal/modal.component';
 import { UserService } from '../user/user-service';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
@@ -8,7 +9,7 @@ import { ModalService } from '../modal/modal.service';
 @Component({
     selector: 'app-title-page',
     templateUrl: './title-page.component.html',
-    imports: [ModalComponent, LoginDialogComponent, RegisterUserFormComponent]
+    imports: [RouterLink, ModalComponent, LoginDialogComponent, RegisterUserFormComponent]
 })
 export class TitlePageComponent {
   constructor(

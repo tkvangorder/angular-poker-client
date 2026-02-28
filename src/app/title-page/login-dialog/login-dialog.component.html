@@ -1,28 +1,32 @@
 <app-modal [options]="modalOptions" >
   <form class="content" id="modal-form" [formGroup]="loginForm" (ngSubmit)="userLogin()">
-    <div class="mb-4 grid grid-cols-3 gap-2 items-center">
-      <label class="label block text-right" for="username">
-        Username
-      </label>
-      <input
-        class="input input-primary col-span-2 w-full max-w-xs"
-        id="username"
-        formControlName="username"
-        type="text"
-        placeholder="Username"
-      />
-      <label class="label block text-right" for="password">
-        Password
-      </label>
-      <input
-        class="input input-primary col-span-2 w-full max-w-xs"
-        id="password"
-        formControlName="password"
-        type="password"
-        placeholder="Password"
-      />
+    <div class="space-y-4">
+      <div class="form-field">
+        <label class="label" for="username">
+          <span class="label-text">Username</span>
+        </label>
+        <input
+          class="input input-bordered w-full"
+          id="username"
+          formControlName="username"
+          type="text"
+          placeholder="Username"
+        />
+      </div>
+      <div class="form-field">
+        <label class="label" for="password">
+          <span class="label-text">Password</span>
+        </label>
+        <input
+          class="input input-bordered w-full"
+          id="password"
+          formControlName="password"
+          type="password"
+          placeholder="Password"
+        />
+      </div>
       @if(error) {
-        <p class="col-span-3 bg-error pl-4 text-error-content rounded-md">
+        <p class="bg-error pl-4 py-2 text-error-content rounded-md text-sm">
           {{ error }}
         </p>
       }

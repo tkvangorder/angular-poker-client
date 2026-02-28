@@ -1,20 +1,20 @@
-<div class="navbar bg-base-100 border-b-2 border-secondary">
+<div class="navbar bg-base-200 shadow-lg">
   <div class="flex-1">
     <a class="btn btn-ghost text-xl">
       <img src="../../assets/icon.png" width="40" height="40" />
     </a>
   </div>
-  <div class="flex-none gap-2">
-    {{ (userGreetings() | async) }}
+  <div class="flex-none gap-3">
+    <span class="text-sm font-medium opacity-80">{{ (userGreetings() | async) }}</span>
     <details class="dropdown dropdown-end" #profileDropDown>
       <summary tabIndex="0" role="button" class="btn btn-ghost btn-circle avatar">
         <div class="w-10 rounded-full">
-          <img alt="Tailwind CSS Navbar component" src="../../assets/nod2.gif">
+          <img alt="Profile avatar" src="../../assets/nod2.gif">
         </div>
       </summary>
       <ul
         tabIndex="0"
-        class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
+        class="mt-3 z-[1] p-2 shadow-lg menu menu-sm dropdown-content bg-base-200 border border-base-300 rounded-box w-52"
       >
         <li>
           <a>Profile</a>
@@ -28,10 +28,10 @@
         <li>
           <details class="dropdown dropdown-hover">
             <summary>Theme</summary>
-            <ul tabindex="0" class="dropdown-hover z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-52">
-              <li><input type="radio" name="theme-dropdown" onclick="" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="forest" value="forest"/></li>
-              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="night" value="night"/></li>
+            <ul tabindex="0" class="dropdown-hover z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-52 max-h-60 overflow-y-auto">
               <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="coffee" value="coffee"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="forest" value="forest"/></li>
+              <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="night" value="night"/></li>
               <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="dim" value="dim"/></li>
               <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="halloween" value="halloween"/></li>
               <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="cupcake" value="cupcake"/></li>
@@ -45,7 +45,7 @@
         <li>
           <a (click)="openAbout()">About</a>
         </li>
-      </ul>  
+      </ul>
     </details>
   </div>
 </div>

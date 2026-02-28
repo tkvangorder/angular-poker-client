@@ -1,19 +1,22 @@
 
-<div class="flex flex-col">
-  <div class="flex justify-between items-center mb-4 p-5">
-    <div class="flex items-center">
+<div class="flex flex-col gap-4 p-4">
+  <div class="bg-base-200 rounded-lg p-4 flex justify-between items-center">
+    <div class="flex items-center gap-2">
       <input type="checkbox" id="completedGames" name="completedGames" class="checkbox checkbox-primary">
-      <label class="label" for="completedGames">Show Completed Games</label>
+      <label class="label cursor-pointer" for="completedGames">
+        <span class="label-text">Show Completed Games</span>
+      </label>
     </div>
     <button class="btn btn-secondary" (click)="openCreateCashGameModal()">
       Create New Game
     </button>
   </div>
-  <div class="flex flex-col md:flex-row">
-    <div class="md:w-1/2 text-center p-4">
+  <div class="flex flex-col md:flex-row gap-4">
+    <div class="md:w-1/2 card-surface">
+      <h2 class="text-lg font-semibold mb-3 text-base-content/70 uppercase tracking-wider">Games</h2>
       <app-cash-game-list></app-cash-game-list>
     </div>
-    <div class="w-full md:w-1/2 p-4 bg-base-300 border-primary">
+    <div class="w-full md:w-1/2 card-surface">
       <app-cash-game-details></app-cash-game-details>
     </div>
   </div>
