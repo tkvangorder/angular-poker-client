@@ -12,10 +12,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ToastMessageComponent } from './toast-message.component';
 import { CommonModule } from '@angular/common';
 @Component({
-  selector: 'app-toast-display',
-  standalone: true,
-  imports: [ToastMessageComponent, CommonModule],
-  templateUrl: './toast-display.component.html',
+    selector: 'app-toast-display',
+    imports: [ToastMessageComponent, CommonModule],
+    templateUrl: './toast-display.component.html'
 })
 export class ToastDisplayComponent implements OnInit {
   @ViewChild('toaster', { read: ViewContainerRef, static: true })

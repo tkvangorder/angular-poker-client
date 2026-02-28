@@ -6,10 +6,9 @@ import { ModalService } from '../modal/modal.service';
 import { CreateCashGameDialogComponent } from './create-cash-game-dialog/create-cash-game-dialog/create-cash-game-dialog.component';
 
 @Component({
-  selector: 'app-home-page',
-  standalone: true,
-  templateUrl: './home-page.component.html',
-  imports: [CashGameDetailsComponent, CashGameListComponent],
+    selector: 'app-home-page',
+    templateUrl: './home-page.component.html',
+    imports: [CashGameDetailsComponent, CashGameListComponent]
 })
 export class HomePageComponent {
   private userService = inject(UserService);

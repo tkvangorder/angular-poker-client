@@ -7,10 +7,9 @@ import { ModalService } from '../modal/modal.service';
 import { AboutComponent } from './about/about/about.component';
 
 @Component({
-  selector: 'app-navigation-bar',
-  standalone: true,
-  templateUrl: './navigation-bar.component.html',
-  imports: [AsyncPipe, ToastDisplayComponent],
+    selector: 'app-navigation-bar',
+    templateUrl: './navigation-bar.component.html',
+    imports: [AsyncPipe, ToastDisplayComponent]
 })
 export class NavigationBarComponent {
   @ViewChild('profileDropDown')

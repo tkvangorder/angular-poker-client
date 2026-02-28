@@ -8,7 +8,7 @@ import { CashGameConfiguration, CashGameDetails } from '../game/game-models';
   providedIn: 'root',
 })
 export class PokerRestClient {
-  baseUrl: string = 'http://localhost:8080';
+  baseUrl: string = '/api';
   constructor(private httpClient: HttpClient) {}
 
   login(loginId: string, password: string) {

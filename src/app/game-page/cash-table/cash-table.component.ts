@@ -3,10 +3,9 @@ import { CardComponent } from '../../poker/card/card.component';
 import { PlayerComponent } from '../player/player.component';
 
 @Component({
-  selector: 'app-cash-table',
-  standalone: true,
-  templateUrl: './cash-table.component.html',
-  styleUrl: './cash-table.component.css',
-  imports: [CardComponent, PlayerComponent],
+    selector: 'app-cash-table',
+    templateUrl: './cash-table.component.html',
+    styleUrl: './cash-table.component.css',
+    imports: [CardComponent, PlayerComponent]
 })
 export class CashTableComponent {}

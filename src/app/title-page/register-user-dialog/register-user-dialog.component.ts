@@ -9,10 +9,9 @@ import { catchError, throwError } from 'rxjs';
 import { ValidationError } from '../../error-handling/error-models';
 
 @Component({
-  selector: 'app-register-user',
-  standalone: true,
-  templateUrl: './register-user-dialog.component.html',
-  imports: [ModalComponent, CommonModule, ReactiveFormsModule],
+    selector: 'app-register-user',
+    templateUrl: './register-user-dialog.component.html',
+    imports: [ModalComponent, CommonModule, ReactiveFormsModule]
 })
 export class RegisterUserFormComponent {
   modalOptions: ModalOptions = {

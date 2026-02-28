@@ -6,10 +6,9 @@ import { RegisterUserFormComponent } from './register-user-dialog/register-user-
 import { ModalService } from '../modal/modal.service';
 
 @Component({
-  selector: 'app-title-page',
-  standalone: true,
-  templateUrl: './title-page.component.html',
-  imports: [ModalComponent, LoginDialogComponent, RegisterUserFormComponent],
+    selector: 'app-title-page',
+    templateUrl: './title-page.component.html',
+    imports: [ModalComponent, LoginDialogComponent, RegisterUserFormComponent]
 })
 export class TitlePageComponent {
   constructor(

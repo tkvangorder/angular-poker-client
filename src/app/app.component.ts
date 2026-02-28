@@ -6,15 +6,14 @@ import { CardComponent } from './poker/card/card.component';
 import { GamePageComponent } from './game-page/game-page.component';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  templateUrl: './app.component.html',
-  imports: [
-    RouterOutlet,
-    NavigationBarComponent,
-    TitlePageComponent,
-    CardComponent,
-    GamePageComponent,
-  ],
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    imports: [
+        RouterOutlet,
+        NavigationBarComponent,
+        TitlePageComponent,
+        CardComponent,
+        GamePageComponent,
+    ]
 })
 export class AppComponent {}

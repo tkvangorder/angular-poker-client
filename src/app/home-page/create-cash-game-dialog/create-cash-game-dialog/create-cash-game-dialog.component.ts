@@ -17,10 +17,9 @@ import { CalendarUtils } from '../../../lib/calendar-utils';
 import { LangUtils } from '../../../lib/lang.utils';
 
 @Component({
-  selector: 'app-create-cash-game-dialog',
-  standalone: true,
-  templateUrl: './create-cash-game-dialog.component.html',
-  imports: [ModalComponent, CommonModule, ReactiveFormsModule],
+    selector: 'app-create-cash-game-dialog',
+    templateUrl: './create-cash-game-dialog.component.html',
+    imports: [ModalComponent, CommonModule, ReactiveFormsModule]
 })
 export class CreateCashGameDialogComponent implements Modal {
   modalOptions: ModalOptions = {

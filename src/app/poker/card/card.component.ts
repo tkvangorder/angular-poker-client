@@ -5,11 +5,10 @@ import { Observable } from 'rxjs';
 import { CardService } from './card.service';
 
 @Component({
-  selector: 'app-card',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './card.component.html',
-  styleUrl: './card.component.css',
+    selector: 'app-card',
+    imports: [CommonModule],
+    templateUrl: './card.component.html',
+    styleUrl: './card.component.css'
 })
 export class CardComponent implements OnInit {
   @Input()

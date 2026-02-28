@@ -12,10 +12,9 @@ import { Router } from '@angular/router';
 import { catchError, of, throwError } from 'rxjs';
 import { ValidationError } from '../../error-handling/error-models';
 @Component({
-  selector: 'app-login-form',
-  standalone: true,
-  templateUrl: './login-dialog.component.html',
-  imports: [ModalComponent, CommonModule, ReactiveFormsModule],
+    selector: 'app-login-form',
+    templateUrl: './login-dialog.component.html',
+    imports: [ModalComponent, CommonModule, ReactiveFormsModule]
 })
 export class LoginDialogComponent implements Modal {
   loginForm = new FormGroup({
