@@ -7,9 +7,9 @@ import { CreateCashGameDialogComponent } from './create-cash-game-dialog/create-
 import { CashGameService } from '../game/cash-game.service';
 
 @Component({
-    selector: 'app-home-page',
-    templateUrl: './home-page.component.html',
-    imports: [CashGameDetailsComponent, CashGameListComponent]
+  selector: 'app-home-page',
+  templateUrl: './home-page.component.html',
+  imports: [CashGameDetailsComponent, CashGameListComponent],
 })
 export class HomePageComponent implements OnInit {
   private userService = inject(UserService);

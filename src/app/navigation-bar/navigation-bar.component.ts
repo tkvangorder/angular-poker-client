@@ -1,4 +1,10 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { UserService } from '../user/user-service';
 import { Observable, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
@@ -8,11 +14,13 @@ import { ModalService } from '../modal/modal.service';
 import { AboutComponent } from './about/about/about.component';
 
 @Component({
-    selector: 'app-navigation-bar',
-    templateUrl: './navigation-bar.component.html',
-    imports: [AsyncPipe, RouterLink, ToastDisplayComponent]
+  selector: 'app-navigation-bar',
+  templateUrl: './navigation-bar.component.html',
+  imports: [AsyncPipe, RouterLink, ToastDisplayComponent],
 })
-export class NavigationBarComponent {
+export class NavigationBarComponent implements OnInit {
+  private static readonly THEME_KEY = 'selected-theme';
+
   @ViewChild('profileDropDown')
   profileDropDown!: ElementRef;
 
@@ -21,8 +29,15 @@ export class NavigationBarComponent {
 
   constructor(
     public userService: UserService,
-    private modalService: ModalService
+    private modalService: ModalService,
   ) {}
+
+  ngOnInit() {
+    const theme = localStorage.getItem(NavigationBarComponent.THEME_KEY);
+    if (theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }
 
   userGreetings(): Observable<string> {
     return this.userService.observeCurrentUser().pipe(
@@ -32,24 +47,46 @@ export class NavigationBarComponent {
         } else {
           return '';
         }
-      })
+      }),
     );
   }
 
-  isAdmin$: Observable<boolean> = this.userService.observeCurrentUser().pipe(
-    map((user) => user?.roles?.includes('ADMIN') ?? false)
-  );
+  isAdmin$: Observable<boolean> = this.userService
+    .observeCurrentUser()
+    .pipe(map((user) => user?.roles?.includes('ADMIN') ?? false));
 
-  closeThemeDropdown() {
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (
+      this.profileDropDown &&
+      !this.profileDropDown.nativeElement.contains(event.target)
+    ) {
+      this.profileDropDown.nativeElement.open = false;
+    }
+    if (
+      this.themeDropDown &&
+      !this.themeDropDown.nativeElement.contains(event.target)
+    ) {
+      this.themeDropDown.nativeElement.open = false;
+    }
+  }
+
+  closeProfileDropdown() {
+    this.profileDropDown.nativeElement.open = false;
+  }
+
+  selectTheme(theme: string) {
     this.themeDropDown.nativeElement.open = false;
+    localStorage.setItem(NavigationBarComponent.THEME_KEY, theme);
   }
 
   openAbout() {
+    this.closeProfileDropdown();
     this.modalService.openDialog(AboutComponent);
   }
 
   logout() {
-    this.profileDropDown.nativeElement.open = false;
+    this.closeProfileDropdown();
     this.userService.logout();
   }
 }
