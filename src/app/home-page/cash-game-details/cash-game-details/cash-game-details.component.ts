@@ -47,4 +47,30 @@ export class CashGameDetailsComponent {
   joinGame(game: CashGameDetails): void {
     this.router.navigate(['/game', game.id]);
   }
+
+  statusBadgeClass(status: GameStatus): string {
+    switch (status) {
+      case 'ACTIVE':
+      case 'SEATING':
+        return 'badge-success';
+      case 'SCHEDULED':
+        return 'badge-info';
+      case 'PAUSED':
+      case 'BALANCING':
+        return 'badge-warning';
+      case 'COMPLETED':
+        return 'badge-ghost';
+      default:
+        return 'badge-ghost';
+    }
+  }
+
+  statusLabel(status: GameStatus): string {
+    return status.charAt(0) + status.slice(1).toLowerCase();
+  }
+
+  playerInitials(player: { user?: { alias?: string; name?: string } }): string {
+    const name = player.user?.alias || player.user?.name || '?';
+    return name.substring(0, 2).toUpperCase();
+  }
 }
