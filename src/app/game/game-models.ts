@@ -1,11 +1,6 @@
 import { User } from '../user/user-models';
 
-export enum GameStatus {
-  'ACTIVE',
-  'COMPLETED',
-  'PAUSED',
-  'SCHEDULED',
-}
+export type GameStatus = 'SCHEDULED' | 'SEATING' | 'ACTIVE' | 'BALANCING' | 'PAUSED' | 'COMPLETED';
 
 export enum GameFormat {
   'CASH',
@@ -23,10 +18,10 @@ export type PlayerStatus =
   | 'OBSERVER';
 
 export interface GameCriteria {
-  name: string;
-  status: GameStatus;
-  startDate: Date;
-  endDate: Date;
+  name?: string;
+  statuses?: GameStatus[];
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface Player {
@@ -43,8 +38,8 @@ export interface Game {
   status: GameStatus;
   format: GameFormat;
   type: GameType;
-  startTimestamp: Date;
-  endTimestamp: Date | undefined;
+  startTime: string;
+  endTime: string | undefined;
   owner: User;
   players: Map<string, Player>;
   tables: Table[];
@@ -53,7 +48,7 @@ export interface Game {
 export interface CashGameConfiguration {
   name: string | undefined;
   gameType: GameType | undefined;
-  startTimestamp: Date;
+  startTime: Date;
   maxBuyIn: number;
   smallBlind: number;
   bigBlind: number;
@@ -62,8 +57,9 @@ export interface CashGameConfiguration {
 export interface CashGameDetails {
   id: string;
   name: string;
-  gameType: GameType;
-  startTimestamp: Date;
+  type: GameType;
+  status: GameStatus;
+  startTime: string;
   maxBuyIn: number;
   owner: User;
   smallBlind: number;
@@ -80,8 +76,8 @@ export class CashGame implements Game {
     public status: GameStatus,
     public type: GameType,
     public owner: User,
-    public startTimestamp: Date,
-    public endTimestamp: Date | undefined,
+    public startTime: string,
+    public endTime: string | undefined,
     public players: Map<string, Player>,
     public tables: Table[],
     public smallBlind: number,

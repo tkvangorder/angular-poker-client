@@ -66,7 +66,7 @@ export class CreateCashGameDialogComponent implements Modal {
         gameType: this.stringToType(
           this.gameConfigurationForm.value.gameType ?? undefined
         ),
-        startTimestamp: CalendarUtils.combineDateTime(
+        startTime: CalendarUtils.combineDateTime(
           this.gameConfigurationForm.value.startDate ?? undefined,
           this.gameConfigurationForm.value.startTime ?? undefined
         ),

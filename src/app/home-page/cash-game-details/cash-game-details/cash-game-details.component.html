@@ -1,22 +1,51 @@
-<div class="card bg-base-100 shadow-lg rounded-xl p-6">
-  <h2 class="mb-4 text-2xl font-bold text-center">Fred's first Poker game</h2>
-  <div class="divider my-0 mb-4"></div>
-  <div class="grid grid-cols-2 gap-y-3 gap-x-4">
-    <span class="text-sm font-semibold text-base-content/60 uppercase">Game Type</span>
-    <span class="text-base font-medium">Hold'em</span>
+@if (selectedGame$ | async; as game) {
+  <div class="card bg-base-100 shadow-lg rounded-xl p-6">
+    <h2 class="mb-4 text-2xl font-bold text-center">{{ game.name }}</h2>
+    <div class="divider my-0 mb-4"></div>
+    <div class="grid grid-cols-2 gap-y-3 gap-x-4">
+      <span class="text-sm font-semibold text-base-content/60 uppercase">Game Type</span>
+      <span class="text-base font-medium">{{ game.type }}</span>
 
-    <span class="text-sm font-semibold text-base-content/60 uppercase">Game Time</span>
-    <span class="text-base font-medium">Jun 12 9:00 PM</span>
+      <span class="text-sm font-semibold text-base-content/60 uppercase">Game Time</span>
+      <span class="text-base font-medium">{{ game.startTime | date:'MMM d h:mm a' }}</span>
 
-    <span class="text-sm font-semibold text-base-content/60 uppercase">Buy-In</span>
-    <span class="text-base font-medium">$100.00</span>
+      <span class="text-sm font-semibold text-base-content/60 uppercase">Buy-In</span>
+      <span class="text-base font-medium">{{ formatBuyIn(game) }}</span>
 
-    <span class="text-sm font-semibold text-base-content/60 uppercase">Blinds</span>
-    <span class="text-base font-medium">.25/.50</span>
+      <span class="text-sm font-semibold text-base-content/60 uppercase">Blinds</span>
+      <span class="text-base font-medium">{{ formatBlinds(game) }}</span>
+
+      <span class="text-sm font-semibold text-base-content/60 uppercase">Owner</span>
+      <span class="text-base font-medium">{{ game.owner?.alias || game.owner?.name }}</span>
+
+      <span class="text-sm font-semibold text-base-content/60 uppercase">Players</span>
+      <span class="text-base font-medium">{{ game.players?.length || 0 }}</span>
+    </div>
+
+    @if (game.players?.length) {
+      <div class="divider my-0 mt-4 mb-2"></div>
+      <h3 class="text-sm font-semibold text-base-content/60 uppercase mb-2">Registered Players</h3>
+      <div class="flex flex-wrap gap-2">
+        @for (player of game.players; track player.user?.loginId) {
+          <span class="badge badge-outline">{{ player.user?.alias || player.user?.name }}</span>
+        }
+      </div>
+    }
+
+    <div class="divider my-0 mt-4 mb-4"></div>
+    <div class="flex items-center justify-center gap-3">
+      @if (isRegistered(game)) {
+        <button class="btn btn-warning flex-1" type="button" (click)="unregister(game)">Unregister</button>
+      } @else {
+        <button class="btn btn-secondary flex-1" type="button" (click)="register(game)">Register</button>
+      }
+      <button class="btn btn-primary flex-1" type="button"
+              [disabled]="!canJoin(game)"
+              (click)="joinGame(game)">Join Game</button>
+    </div>
   </div>
-  <div class="divider my-0 mt-4 mb-4"></div>
-  <div class="flex items-center justify-center gap-3">
-    <button class="btn btn-secondary flex-1" type="button">Register</button>
-    <button class="btn btn-primary flex-1" type="button">Join</button>
+} @else {
+  <div class="card bg-base-100 shadow-lg rounded-xl p-6 text-center text-base-content/50">
+    <p>Select a game to view details</p>
   </div>
-</div>
+}

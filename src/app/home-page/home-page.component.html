@@ -2,14 +2,19 @@
 <div class="flex flex-col gap-4 p-4">
   <div class="bg-base-200 rounded-lg p-4 flex justify-between items-center">
     <div class="flex items-center gap-2">
-      <input type="checkbox" id="completedGames" name="completedGames" class="checkbox checkbox-primary">
+      <input type="checkbox" id="completedGames" name="completedGames"
+             class="checkbox checkbox-primary"
+             [checked]="showCompleted"
+             (change)="toggleShowCompleted()">
       <label class="label cursor-pointer" for="completedGames">
         <span class="label-text">Show Completed Games</span>
       </label>
     </div>
-    <button class="btn btn-secondary" (click)="openCreateCashGameModal()">
-      Create New Game
-    </button>
+    @if (isAdmin) {
+      <button class="btn btn-secondary" (click)="openCreateCashGameModal()">
+        Create New Game
+      </button>
+    }
   </div>
   <div class="flex flex-col md:flex-row gap-4">
     <div class="md:w-1/2 card-surface">

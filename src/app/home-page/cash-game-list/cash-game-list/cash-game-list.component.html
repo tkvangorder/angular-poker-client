@@ -11,30 +11,28 @@
       </tr>
     </thead>
     <tbody>
-      <tr class="hover bg-primary/20 cursor-pointer">
-        <td>Fred's first Poker game</td>
-        <td>Hold'em</td>
-        <td>.25/.50</td>
-        <td>100.00</td>
-        <td>Starts 10 Min</td>
-        <td>12</td>
-      </tr>
-      <tr class="hover cursor-pointer">
-        <td>Fred's second Poker game</td>
-        <td>Hold'em</td>
-        <td>.25/.50</td>
-        <td>60.00</td>
-        <td>2024-06-24 09:00 PM</td>
-        <td>12</td>
-      </tr>
-      <tr class="hover cursor-pointer">
-        <td>Fred's third, really really cool Poker game</td>
-        <td>Hold'em</td>
-        <td>1/2</td>
-        <td>100.00</td>
-        <td>2024-06-25 08:00 PM</td>
-        <td>7</td>
-      </tr>
+      @for (game of games$ | async; track game.id) {
+        <tr class="hover cursor-pointer"
+            [class.bg-primary]="(selectedGame$ | async)?.id === game.id"
+            [class.bg-opacity-20]="(selectedGame$ | async)?.id === game.id"
+            (click)="selectGame(game)">
+          <td>
+            {{ game.name }}
+            @if (isRegistered(game)) {
+              <span class="badge badge-accent badge-sm ml-2">Registered</span>
+            }
+          </td>
+          <td>{{ game.type }}</td>
+          <td>{{ formatBlinds(game) }}</td>
+          <td>{{ formatBuyIn(game) }}</td>
+          <td>{{ game.startTime | date:'MMM d, h:mm a' }}</td>
+          <td>{{ game.players?.length || 0 }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="text-center text-base-content/50 py-8">No games available</td>
+        </tr>
+      }
     </tbody>
   </table>
 </div>

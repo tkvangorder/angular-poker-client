@@ -1,8 +1,8 @@
 import { AuthenticatedUserReponse } from './rest-client-models';
 import { RegisterUserRequest } from '../user/user-models';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { CashGameConfiguration, CashGameDetails } from '../game/game-models';
+import { CashGameConfiguration, CashGameDetails, GameCriteria } from '../game/game-models';
 
 @Injectable({
   providedIn: 'root',
@@ -28,10 +28,55 @@ export class PokerRestClient {
     );
   }
 
+  searchGames(criteria: GameCriteria) {
+    return this.httpClient.post<CashGameDetails[]>(
+      `${this.baseUrl}/cash-games/search`,
+      criteria
+    );
+  }
+
+  getGame(gameId: string) {
+    return this.httpClient.get<CashGameDetails>(
+      `${this.baseUrl}/cash-games/${gameId}`,
+      { params: new HttpParams().set('gameId', gameId) }
+    );
+  }
+
   createGame(cashGameConfiguration: CashGameConfiguration) {
     return this.httpClient.post<CashGameDetails>(
       `${this.baseUrl}/cash-games`,
       cashGameConfiguration
+    );
+  }
+
+  updateGame(gameId: string, cashGameConfiguration: CashGameConfiguration) {
+    return this.httpClient.post<CashGameDetails>(
+      `${this.baseUrl}/cash-games/${gameId}/update`,
+      cashGameConfiguration,
+      { params: new HttpParams().set('gameId', gameId) }
+    );
+  }
+
+  deleteGame(gameId: string) {
+    return this.httpClient.delete<void>(
+      `${this.baseUrl}/cash-games/${gameId}`,
+      { params: new HttpParams().set('gameId', gameId) }
+    );
+  }
+
+  registerForGame(gameId: string) {
+    return this.httpClient.post<void>(
+      `${this.baseUrl}/cash-games/${gameId}/register`,
+      {},
+      { params: new HttpParams().set('gameId', gameId) }
+    );
+  }
+
+  unregisterFromGame(gameId: string) {
+    return this.httpClient.post<void>(
+      `${this.baseUrl}/cash-games/${gameId}/unregister`,
+      {},
+      { params: new HttpParams().set('gameId', gameId) }
     );
   }
 }

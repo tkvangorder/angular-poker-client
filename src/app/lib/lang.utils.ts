@@ -26,4 +26,15 @@ export class LangUtils {
   public static asCents(value: number): number {
     return value * 100;
   }
+
+  /**
+   * Formats a value in cents as a dollar currency string.
+   * Examples: 2500 -> "$25", 50 -> "$0.50", 125 -> "$1.25"
+   */
+  public static formatCurrency(cents: number): string {
+    const dollars = cents / 100;
+    return dollars % 1 === 0
+      ? `$${dollars.toFixed(0)}`
+      : `$${dollars.toFixed(2)}`;
+  }
 }
