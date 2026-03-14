@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { TitlePageComponent } from './title-page/title-page.component';
 import { HomePageComponent } from './home-page/home-page.component';
-import { GamePageComponent } from './game-page/game-page.component';
 import { GameLobbyComponent } from './game-lobby/game-lobby.component';
 import { authenticationGuard, loggedInGuard } from './auth-guard.service';
 export const routes: Routes = [
@@ -16,11 +15,6 @@ export const routes: Routes = [
     component: HomePageComponent,
     title: 'Chico Degens Poker Club',
     canActivate: [authenticationGuard]
-  },
-  {
-    path: 'game',
-    component: GamePageComponent,
-    title: 'Chico Degens Poker Club - Game'
   },
   {
     path: 'game/:gameId',

@@ -77,36 +77,8 @@ src/app/
 OpenAPI spec: http://localhost:8080/v3/api-docs
 Swagger UI: http://localhost:8080/swagger-ui/index.html
 
-### Authentication (no auth required)
-- `POST /auth/login` → `AuthenticationResponse { token, user }`
-- `POST /auth/register` → `AuthenticationResponse { token, user }`
-
-### Cash Games (authenticated)
-- `POST /cash-games/search` — Search games with `GameCriteria { name?, statuses?, startTime?, endTime? }`
-- `GET /cash-games/{gameId}` — Get game details (gameId also as query param)
-- `POST /cash-games` — Create game with `CashGameConfiguration`
-- `POST /cash-games/{gameId}/update` — Update game (admin)
-- `DELETE /cash-games/{gameId}` — Delete game (admin)
-- `POST /cash-games/{gameId}/register` — Register for game
-- `POST /cash-games/{gameId}/unregister` — Unregister from game
-
-### Game Statuses
-`SCHEDULED` | `SEATING` | `ACTIVE` | `BALANCING` | `PAUSED` | `COMPLETED`
-
-### Files (authenticated)
-- `POST /files` — Upload file (max 2MB)
-- `GET /files/{fileId}` — Download file
-
-### Users (authenticated)
-- `POST /users` — Search users by `UserCriteria { userLoginId?, userEmail? }`
-- `POST /users/{userId}/update` — Update user info
-- `POST /users/{userId}/password` — Change password
-
-### Admin
-- Admin role required for game create/update/delete. Dev credentials: admin/admin
-
 ### WebSocket (game play)
+- Websocket commands and events specification: http://localhost:8080/command-event-spec.md 
 - Connect: `ws://localhost:8080/ws/games/{gameId}?token={jwtToken}`
-- Commands/events spec: https://github.com/tkvangorder/home-poker/blob/main/docs/command-event-spec.md
 - Client types: `src/app/game/game-commands.ts`, `src/app/game/game-events.ts`
 

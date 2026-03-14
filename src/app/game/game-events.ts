@@ -4,20 +4,14 @@
  */
 
 import { Card } from '../poker/poker-models';
-import { GameStatus } from './game-models';
+import { GameStatus, HandPhase, Player, SeatCard, Table } from './game-models';
 import { PlayerAction } from './game-commands';
 
 // --- Game-Level Events ---
 
 export type MessageSeverity = 'INFO' | 'WARNING' | 'ERROR';
 
-export type HandPhase =
-  | 'PREDEAL'
-  | 'PRE_FLOP_BETTING'
-  | 'FLOP_BETTING'
-  | 'TURN_BETTING'
-  | 'RIVER_BETTING'
-  | 'HAND_COMPLETE';
+export { HandPhase, SeatCard };
 
 export interface GameStatusChangedEvent {
   eventType: 'game-status-changed';
@@ -67,10 +61,6 @@ export interface HandStartedEvent {
   bigBlindAmount: number;
 }
 
-export interface SeatCard {
-  card: Card;
-  faceUp: boolean;
-}
 
 export interface HoleCardsDealtEvent {
   eventType: 'hole-cards-dealt';
@@ -165,6 +155,30 @@ export interface UserMessageEvent {
   message: string;
 }
 
+// --- Snapshot Events ---
+
+export interface GameSnapshotEvent {
+  eventType: 'game-snapshot';
+  timestamp: string;
+  userId: string;
+  gameId: string;
+  gameName: string;
+  status: GameStatus;
+  startTime: string;
+  smallBlind: number;
+  bigBlind: number;
+  players: Player[];
+  tableIds: string[];
+}
+
+export interface TableSnapshotEvent {
+  eventType: 'table-snapshot';
+  timestamp: string;
+  userId: string;
+  gameId: string;
+  table: Table;
+}
+
 // --- Discriminated Union ---
 
 export type GameEvent =
@@ -180,4 +194,6 @@ export type GameEvent =
   | BettingRoundCompleteEvent
   | ShowdownResultEvent
   | HandCompleteEvent
-  | UserMessageEvent;
+  | UserMessageEvent
+  | GameSnapshotEvent
+  | TableSnapshotEvent;

@@ -1,0 +1,13 @@
+<div class="flex flex-col h-full">
+  <h2 class="text-lg font-semibold mb-3 text-base-content/70 uppercase tracking-wider">Messages</h2>
+  <div class="overflow-y-auto flex-1 flex flex-col-reverse">
+    @for (msg of messages; track $index) {
+      <div class="py-1 px-2 text-sm border-b border-base-200">
+        <span class="text-base-content/50 text-xs">{{ msg.timestamp | date:'h:mm:ss a' }}</span>
+        <span class="ml-2">{{ msg.message }}</span>
+      </div>
+    } @empty {
+      <div class="text-center text-base-content/50 py-8">No messages yet</div>
+    }
+  </div>
+</div>

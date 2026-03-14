@@ -6,11 +6,18 @@ import { GameStateService, PlayerState, TableState } from '../game/game-state.se
 import { GameWebSocketService, ConnectionStatus } from '../game/game-websocket.service';
 import { UserService } from '../user/user-service';
 import { GameStatus } from '../game/game-models';
+import { PokerRestClient } from '../rest/poker-rest-client';
 import { LangUtils } from '../lib/lang.utils';
+import { LeaderboardPanelComponent } from './leaderboard-panel/leaderboard-panel.component';
+import { MessagesPanelComponent } from './messages-panel/messages-panel.component';
+import { TableViewComponent } from './table-view/table-view.component';
+import { Observable, combineLatest, map, distinctUntilChanged } from 'rxjs';
+
+type ActiveTab = 'table' | 'leaderboard' | 'messages';
 
 @Component({
   selector: 'app-game-lobby',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LeaderboardPanelComponent, MessagesPanelComponent, TableViewComponent],
   templateUrl: './game-lobby.component.html',
 })
 export class GameLobbyComponent implements OnInit, OnDestroy {
@@ -19,30 +26,63 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
   private gameStateService = inject(GameStateService);
   private webSocketService = inject(GameWebSocketService);
   private userService = inject(UserService);
+  private pokerClient = inject(PokerRestClient);
 
   gameId = '';
+  maxBuyIn = 0;
   gameStatus$ = this.gameStateService.getGameStatus();
   players$ = this.gameStateService.getPlayers();
   tables$ = this.gameStateService.getTables();
   messages$ = this.gameStateService.getMessages();
   connectionStatus$ = this.webSocketService.getConnectionStatus();
 
-  buyInAmount = 0;
+  activeTab: ActiveTab = 'leaderboard';
+  selectedTableId: string | null = null;
+
+  myTableId$!: Observable<string | null>;
+  myTableState$!: Observable<TableState | null>;
 
   get isAdmin(): boolean {
     const user = this.userService.getCurrentUser();
     return user?.roles?.includes('ADMIN') ?? false;
   }
 
+  get currentUserId(): string {
+    return this.userService.getCurrentUser()?.loginId ?? '';
+  }
+
   ngOnInit(): void {
     this.gameId = this.route.snapshot.paramMap.get('gameId') ?? '';
     if (this.gameId) {
       this.gameStateService.connectToGame(this.gameId);
+      this.pokerClient.getGame(this.gameId).subscribe(details => {
+        this.maxBuyIn = details.maxBuyIn;
+      });
     }
+
+    this.myTableId$ = this.players$.pipe(
+      map(players => players.get(this.currentUserId)?.tableId ?? null),
+      distinctUntilChanged()
+    );
+
+    this.myTableState$ = combineLatest([this.tables$, this.myTableId$]).pipe(
+      map(([tables, myTableId]) => {
+        const tableId = this.selectedTableId ?? myTableId;
+        return tableId ? (tables.get(tableId) ?? null) : null;
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.gameStateService.disconnect();
+  }
+
+  isActiveGame(status: GameStatus | null): boolean {
+    return status === 'ACTIVE' || status === 'BALANCING' || status === 'PAUSED';
+  }
+
+  isPreGame(status: GameStatus | null): boolean {
+    return status === 'SCHEDULED' || status === 'SEATING' || status === null;
   }
 
   sendGameCommand(commandId: string): void {
@@ -52,14 +92,19 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
     });
   }
 
-  buyIn(): void {
-    if (this.buyInAmount > 0) {
-      this.webSocketService.sendCommand({
-        commandId: 'buy-in',
-        gameId: this.gameId,
-        amount: LangUtils.asCents(this.buyInAmount),
-      });
-    }
+  registerForGame(): void {
+    this.webSocketService.sendCommand({
+      commandId: 'register-for-game',
+      gameId: this.gameId,
+    });
+  }
+
+  buyIn(amount: number): void {
+    this.webSocketService.sendCommand({
+      commandId: 'buy-in',
+      gameId: this.gameId,
+      amount: LangUtils.asCents(amount),
+    });
   }
 
   leaveGame(): void {
@@ -70,8 +115,12 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
     this.router.navigate(['/home']);
   }
 
-  navigateToTable(tableId: string): void {
-    this.router.navigate(['/game', this.gameId, 'table', tableId]);
+  selectTable(tableId: string): void {
+    this.selectedTableId = tableId;
+  }
+
+  setActiveTab(tab: ActiveTab): void {
+    this.activeTab = tab;
   }
 
   getPlayersArray(players: Map<string, PlayerState>): PlayerState[] {

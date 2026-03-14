@@ -73,6 +73,11 @@ export interface LeaveGameCommand {
   gameId: string;
 }
 
+export interface GetGameStateCommand {
+  commandId: 'get-game-state';
+  gameId: string;
+}
+
 // --- Table-Level Commands ---
 
 export interface PlayerActionCommand {
@@ -101,6 +106,12 @@ export interface PostBlindCommand {
   tableId: string;
 }
 
+export interface GetTableStateCommand {
+  commandId: 'get-table-state';
+  gameId: string;
+  tableId: string;
+}
+
 export type GameCommand =
   | RegisterForGameCommand
   | UnregisterFromGameCommand
@@ -113,4 +124,6 @@ export type GameCommand =
   | PlayerActionCommand
   | PlayerIntentCommand
   | ShowCardsCommand
-  | PostBlindCommand;
+  | PostBlindCommand
+  | GetGameStateCommand
+  | GetTableStateCommand;

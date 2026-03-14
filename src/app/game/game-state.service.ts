@@ -1,11 +1,13 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { distinctUntilChanged, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, take } from 'rxjs/operators';
 import { Card } from '../poker/poker-models';
-import { GameStatus } from './game-models';
+import { GameStatus, Table } from './game-models';
 import { GameWebSocketService } from './game-websocket.service';
 import {
   GameEvent,
+  GameSnapshotEvent,
+  TableSnapshotEvent,
   PotInfo,
   PotResult,
   SeatCard,
@@ -80,6 +82,8 @@ export class GameStateService implements OnDestroy {
   private state$ = new BehaviorSubject<GameState>(createInitialState());
   private subscription: Subscription | null = null;
 
+  private statusSubscription: Subscription | null = null;
+
   constructor(private webSocketService: GameWebSocketService) {}
 
   connectToGame(gameId: string): void {
@@ -89,6 +93,21 @@ export class GameStateService implements OnDestroy {
     state.gameId = gameId;
     this.state$.next(state);
 
+    // Subscribe to connection status BEFORE connecting so we don't miss the
+    // 'connected' event (connectionStatus$ is a plain Subject).
+    this.statusSubscription = this.webSocketService
+      .getConnectionStatus()
+      .pipe(
+        filter((status) => status === 'connected'),
+        take(1)
+      )
+      .subscribe(() => {
+        this.webSocketService.sendCommand({
+          commandId: 'get-game-state',
+          gameId,
+        });
+      });
+
     this.subscription = this.webSocketService
       .connect(gameId)
       .subscribe((event) => this.handleEvent(event));
@@ -97,6 +116,8 @@ export class GameStateService implements OnDestroy {
   disconnect(): void {
     this.subscription?.unsubscribe();
     this.subscription = null;
+    this.statusSubscription?.unsubscribe();
+    this.statusSubscription = null;
     this.webSocketService.disconnect();
     this.state$.next(createInitialState());
   }
@@ -313,6 +334,78 @@ export class GameStateService implements OnDestroy {
           });
           state.tables = tables;
         }
+        break;
+      }
+
+      case 'game-snapshot': {
+        state.status = event.status;
+
+        const players = new Map<string, PlayerState>();
+        for (const player of event.players) {
+          players.set(player.user.loginId!, {
+            userId: player.user.loginId!,
+            chipCount: player.chipCount,
+            tableId: player.tableId,
+            seatPosition: null,
+          });
+        }
+        state.players = players;
+
+        // Ensure table entries exist for all table IDs and request each table's state
+        const tables = new Map(state.tables);
+        for (const tableId of event.tableIds) {
+          if (!tables.has(tableId)) {
+            tables.set(tableId, createInitialTableState(tableId));
+          }
+          this.webSocketService.sendCommand({
+            commandId: 'get-table-state',
+            gameId: event.gameId,
+            tableId,
+          });
+        }
+        state.tables = tables;
+        break;
+      }
+
+      case 'table-snapshot': {
+        const tables = new Map(state.tables);
+        const t = event.table;
+        const seatCards = new Map<number, SeatCard[]>();
+        for (let i = 0; i < t.seats.length; i++) {
+          if (t.seats[i].cards) {
+            seatCards.set(i, t.seats[i].cards!);
+          }
+        }
+        tables.set(t.id, {
+          tableId: t.id,
+          handNumber: t.handNumber,
+          dealerPosition: t.dealerPosition ?? -1,
+          smallBlindPosition: t.smallBlindPosition ?? -1,
+          bigBlindPosition: t.bigBlindPosition ?? -1,
+          smallBlindAmount: 0,
+          bigBlindAmount: 0,
+          communityCards: t.communityCards,
+          pots: t.pots.map((p, i) => ({ potIndex: i, potAmount: p.amount })),
+          phase: t.handPhase,
+          potResults: null,
+          seatCards,
+          lastAction: null,
+        });
+        state.tables = tables;
+
+        // Update player seat positions from the table snapshot
+        const players = new Map(state.players);
+        for (let i = 0; i < t.seats.length; i++) {
+          const seat = t.seats[i];
+          if (seat.player) {
+            const userId = seat.player.user.loginId!;
+            const existing = players.get(userId);
+            if (existing) {
+              players.set(userId, { ...existing, seatPosition: i, tableId: t.id });
+            }
+          }
+        }
+        state.players = players;
         break;
       }
     }

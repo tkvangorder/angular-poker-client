@@ -1,0 +1,6 @@
+.game-background {
+  background-image: url('../../../assets/game/dark-4.webp');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}

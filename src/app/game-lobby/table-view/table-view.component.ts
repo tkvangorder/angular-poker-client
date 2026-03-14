@@ -1,0 +1,27 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { CashTableComponent } from '../../game-page/cash-table/cash-table.component';
+import { TableState, PlayerState } from '../../game/game-state.service';
+import { GameStatus } from '../../game/game-models';
+
+@Component({
+  selector: 'app-table-view',
+  imports: [CommonModule, CashTableComponent],
+  templateUrl: './table-view.component.html',
+  styleUrl: './table-view.component.css',
+})
+export class TableViewComponent {
+  @Input() tableState: TableState | null = null;
+  @Input() players: PlayerState[] = [];
+  @Input() gameStatus: GameStatus | null = null;
+
+  get showOverlay(): boolean {
+    return this.gameStatus === 'PAUSED' || this.gameStatus === 'BALANCING';
+  }
+
+  get overlayText(): string {
+    if (this.gameStatus === 'PAUSED') return 'Game Paused';
+    if (this.gameStatus === 'BALANCING') return 'Rebalancing Tables...';
+    return '';
+  }
+}
