@@ -1,12 +1,7 @@
 <div class="flex flex-col h-full">
   <h2 class="text-lg font-semibold mb-3 text-base-content/70 uppercase tracking-wider">Leaderboard</h2>
 
-  @if (showBuyIn) {
-    @if (!isRegistered) {
-      <div class="mb-4">
-        <button class="btn btn-primary btn-sm w-full" (click)="onJoinGame()">Join Game</button>
-      </div>
-    } @else {
+  @if (showBuyIn && isRegistered) {
       <div class="mb-4">
         <label class="label pb-1">
           <span class="label-text">Buy-in amount (USD)</span>
@@ -26,7 +21,6 @@
           <button class="btn btn-primary btn-sm" [disabled]="!isBuyInValid" (click)="onBuyIn()">Buy In</button>
         </div>
       </div>
-    }
   }
 
   <div class="overflow-y-auto flex-1">

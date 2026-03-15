@@ -107,6 +107,10 @@ export class GameStateService implements OnDestroy {
       )
       .subscribe(() => {
         this.webSocketService.sendCommand({
+          commandId: 'join-game',
+          gameId,
+        });
+        this.webSocketService.sendCommand({
           commandId: 'get-game-state',
           gameId,
         });
@@ -188,6 +192,39 @@ export class GameStateService implements OnDestroy {
         state.status = event.newStatus;
         state.messages = [...state.messages, this.createInfoMessage(event.gameId, `Game is now ${event.newStatus}`)];
         break;
+
+      case 'player-joined': {
+        const players = new Map(state.players);
+        if (!players.has(event.userId)) {
+          players.set(event.userId, {
+            userId: event.userId,
+            chipCount: 0,
+            tableId: null,
+            seatPosition: null,
+          });
+        }
+        state.players = players;
+        const name = this.getDisplayName(event.userId);
+        state.messages = [...state.messages, this.createInfoMessage(event.gameId, `${name} joined the game`)];
+        break;
+      }
+
+      case 'player-seated': {
+        const players = new Map(state.players);
+        const existing = players.get(event.userId);
+        if (existing) {
+          players.set(event.userId, { ...existing, tableId: event.tableId });
+        }
+        state.players = players;
+
+        // Ensure target table state exists
+        if (!state.tables.has(event.tableId)) {
+          const tables = new Map(state.tables);
+          tables.set(event.tableId, createInitialTableState(event.tableId));
+          state.tables = tables;
+        }
+        break;
+      }
 
       case 'game-message':
         state.messages = [...state.messages, event];

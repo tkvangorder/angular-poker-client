@@ -44,7 +44,6 @@
             [showBuyIn]="(gameStatus$ | async) !== 'SCHEDULED'"
             [maxBuyIn]="maxBuyIn"
             (buyIn)="buyIn($event)"
-            (joinGame)="registerForGame()"
           />
         }
       </div>

@@ -92,12 +92,6 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
     });
   }
 
-  registerForGame(): void {
-    this.webSocketService.sendCommand({
-      commandId: 'register-for-game',
-      gameId: this.gameId,
-    });
-  }
 
   buyIn(amount: number): void {
     this.webSocketService.sendCommand({

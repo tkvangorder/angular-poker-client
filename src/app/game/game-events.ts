@@ -37,6 +37,21 @@ export interface PlayerBuyInEvent {
   newChipCount: number;
 }
 
+export interface PlayerJoinedEvent {
+  eventType: 'player-joined';
+  timestamp: string;
+  gameId: string;
+  userId: string;
+}
+
+export interface PlayerSeatedEvent {
+  eventType: 'player-seated';
+  timestamp: string;
+  gameId: string;
+  userId: string;
+  tableId: string;
+}
+
 export interface PlayerMovedEvent {
   eventType: 'player-moved';
   timestamp: string;
@@ -184,6 +199,8 @@ export interface TableSnapshotEvent {
 export type GameEvent =
   | GameStatusChangedEvent
   | GameMessageEvent
+  | PlayerJoinedEvent
+  | PlayerSeatedEvent
   | PlayerBuyInEvent
   | PlayerMovedEvent
   | HandStartedEvent

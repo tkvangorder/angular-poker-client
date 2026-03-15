@@ -15,7 +15,6 @@ export class LeaderboardPanelComponent {
   @Input() showBuyIn = true;
   @Input() maxBuyIn: number = 0;
   @Output() buyIn = new EventEmitter<number>();
-  @Output() joinGame = new EventEmitter<void>();
 
   buyInAmount: number | null = null;
 
@@ -46,9 +45,6 @@ export class LeaderboardPanelComponent {
     this.buyInAmount = this.remainingBuyInDollars;
   }
 
-  onJoinGame(): void {
-    this.joinGame.emit();
-  }
 
   onBuyIn(): void {
     if (this.buyInAmount && this.buyInAmount > 0) {

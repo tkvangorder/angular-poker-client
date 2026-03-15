@@ -32,13 +32,8 @@ export type PlayerAction = FoldAction | CheckAction | CallAction | BetAction | R
 
 // --- Game-Level Commands ---
 
-export interface RegisterForGameCommand {
-  commandId: 'register-for-game';
-  gameId: string;
-}
-
-export interface UnregisterFromGameCommand {
-  commandId: 'unregister-from-game';
+export interface JoinGameCommand {
+  commandId: 'join-game';
   gameId: string;
 }
 
@@ -113,8 +108,7 @@ export interface GetTableStateCommand {
 }
 
 export type GameCommand =
-  | RegisterForGameCommand
-  | UnregisterFromGameCommand
+  | JoinGameCommand
   | StartGameCommand
   | PauseGameCommand
   | ResumeGameCommand
