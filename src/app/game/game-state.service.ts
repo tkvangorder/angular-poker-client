@@ -342,8 +342,8 @@ export class GameStateService implements OnDestroy {
 
         const players = new Map<string, PlayerState>();
         for (const player of event.players) {
-          players.set(player.user.loginId!, {
-            userId: player.user.loginId!,
+          players.set(player.user.id, {
+            userId: player.user.id,
             chipCount: player.chipCount,
             tableId: player.tableId,
             seatPosition: null,
@@ -398,7 +398,7 @@ export class GameStateService implements OnDestroy {
         for (let i = 0; i < t.seats.length; i++) {
           const seat = t.seats[i];
           if (seat.player) {
-            const userId = seat.player.user.loginId!;
+            const userId = seat.player.user.id;
             const existing = players.get(userId);
             if (existing) {
               players.set(userId, { ...existing, seatPosition: i, tableId: t.id });

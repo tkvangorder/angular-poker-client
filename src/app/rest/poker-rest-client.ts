@@ -2,7 +2,11 @@ import { AuthenticatedUserReponse } from './rest-client-models';
 import { RegisterUserRequest } from '../user/user-models';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { CashGameConfiguration, CashGameDetails, GameCriteria } from '../game/game-models';
+import {
+  CashGameConfiguration,
+  CashGameDetails,
+  GameCriteria
+} from '../game/game-models';
 
 @Injectable({
   providedIn: 'root',

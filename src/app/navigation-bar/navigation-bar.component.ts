@@ -43,7 +43,7 @@ export class NavigationBarComponent implements OnInit {
     return this.userService.observeCurrentUser().pipe(
       map((user) => {
         if (user) {
-          return user.alias || user.name || user.loginId || '';
+          return user.alias || user.name || user.id || '';
         } else {
           return '';
         }

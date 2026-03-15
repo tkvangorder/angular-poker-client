@@ -48,7 +48,7 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
   }
 
   get currentUserId(): string {
-    return this.userService.getCurrentUser()?.loginId ?? '';
+    return this.userService.getCurrentUser()?.id ?? '';
   }
 
   ngOnInit(): void {

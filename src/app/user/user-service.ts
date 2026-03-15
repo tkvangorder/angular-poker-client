@@ -9,7 +9,10 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class UserService {
-  constructor(private pokerClient: PokerRestClient, private router: Router) {}
+  constructor(
+    private pokerClient: PokerRestClient,
+    private router: Router,
+  ) {}
 
   private currentUser$ = new BehaviorSubject<User | undefined>(undefined);
 
@@ -20,7 +23,7 @@ export class UserService {
         localStorage.setItem('currentUser', JSON.stringify(newUser));
         this.currentUser$.next(newUser);
         return newUser;
-      })
+      }),
     );
   }
   logout() {
@@ -36,7 +39,7 @@ export class UserService {
         localStorage.setItem('currentUser', JSON.stringify(newUser));
         this.currentUser$.next(newUser);
         return newUser;
-      })
+      }),
     );
   }
 

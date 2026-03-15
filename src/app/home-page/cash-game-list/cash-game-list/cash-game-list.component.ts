@@ -31,8 +31,8 @@ export class CashGameListComponent {
 
   isRegistered(game: CashGameDetails): boolean {
     const user = this.userService.getCurrentUser();
-    if (!user?.loginId || !game.players) return false;
-    return game.players.some((p) => p.user?.loginId === user.loginId);
+    if (!user?.id || !game.players) return false;
+    return game.players.some((p) => p.user?.id === user.id);
   }
 
   statusBadgeClass(status: GameStatus): string {
