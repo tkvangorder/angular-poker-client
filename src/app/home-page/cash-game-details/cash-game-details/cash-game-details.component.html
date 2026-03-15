@@ -34,7 +34,7 @@
       <!-- Players list -->
       @if (game.players?.length) {
         <div class="mb-4">
-          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-widest mb-2">Registered Players</h3>
+          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-widest mb-2">Players</h3>
           <div class="flex flex-wrap gap-2">
             @for (player of game.players; track player.user?.id) {
               <div class="flex items-center gap-2 bg-base-200 rounded-full pl-1 pr-3 py-1">
@@ -52,13 +52,8 @@
 
       <!-- Actions -->
       <div class="flex items-center gap-3 pt-2">
-        @if (isRegistered(game)) {
-          <button class="btn btn-outline btn-warning flex-1" type="button" (click)="unregister(game)">Unregister</button>
-        } @else {
-          <button class="btn btn-secondary flex-1" type="button" (click)="register(game)">Register</button>
-        }
         <button class="btn btn-primary flex-1" type="button"
-                [disabled]="!canJoin(game)"
+                [disabled]="game.status === 'COMPLETED'"
                 (click)="joinGame(game)">
           Join Game
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

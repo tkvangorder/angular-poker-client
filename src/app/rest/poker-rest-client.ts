@@ -68,19 +68,4 @@ export class PokerRestClient {
     );
   }
 
-  registerForGame(gameId: string) {
-    return this.httpClient.post<CashGameDetails>(
-      `${this.baseUrl}/cash-games/${gameId}/register`,
-      {},
-      { params: new HttpParams().set('gameId', gameId) }
-    );
-  }
-
-  unregisterFromGame(gameId: string) {
-    return this.httpClient.post<CashGameDetails>(
-      `${this.baseUrl}/cash-games/${gameId}/unregister`,
-      {},
-      { params: new HttpParams().set('gameId', gameId) }
-    );
-  }
 }

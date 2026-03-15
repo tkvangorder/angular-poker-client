@@ -20,7 +20,7 @@ export class HomePageComponent implements OnInit {
 
   get isAdmin(): boolean {
     const user = this.userService.getCurrentUser();
-    return user?.roles?.includes('ADMIN') ?? false;
+    return user ? this.userService.isAdmin(user) : false;
   }
 
   ngOnInit(): void {

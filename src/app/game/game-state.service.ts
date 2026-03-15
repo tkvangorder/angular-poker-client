@@ -1,9 +1,11 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { inject, Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map, take } from 'rxjs/operators';
 import { Card } from '../poker/poker-models';
 import { GameStatus, Table } from './game-models';
 import { GameWebSocketService } from './game-websocket.service';
+import { ToasterService } from '../toaster/toaster.service';
+import { LangUtils } from '../lib/lang.utils';
 import {
   GameEvent,
   GameSnapshotEvent,
@@ -83,6 +85,8 @@ export class GameStateService implements OnDestroy {
   private subscription: Subscription | null = null;
 
   private statusSubscription: Subscription | null = null;
+  private toasterService = inject(ToasterService);
+  private displayNames = new Map<string, string>();
 
   constructor(private webSocketService: GameWebSocketService) {}
 
@@ -119,6 +123,7 @@ export class GameStateService implements OnDestroy {
     this.statusSubscription?.unsubscribe();
     this.statusSubscription = null;
     this.webSocketService.disconnect();
+    this.displayNames.clear();
     this.state$.next(createInitialState());
   }
 
@@ -158,6 +163,21 @@ export class GameStateService implements OnDestroy {
     return this.state$.pipe(map((s) => s.messages));
   }
 
+  // --- Helpers ---
+
+  private getDisplayName(userId: string): string {
+    return this.displayNames.get(userId) ?? userId;
+  }
+
+  private createInfoMessage(gameId: string, message: string): GameMessageEvent {
+    return {
+      eventType: 'game-message',
+      timestamp: new Date().toISOString(),
+      gameId,
+      message,
+    };
+  }
+
   // --- Event Handling ---
 
   private handleEvent(event: GameEvent): void {
@@ -166,6 +186,7 @@ export class GameStateService implements OnDestroy {
     switch (event.eventType) {
       case 'game-status-changed':
         state.status = event.newStatus;
+        state.messages = [...state.messages, this.createInfoMessage(event.gameId, `Game is now ${event.newStatus}`)];
         break;
 
       case 'game-message':
@@ -174,6 +195,12 @@ export class GameStateService implements OnDestroy {
 
       case 'user-message':
         state.messages = [...state.messages, event];
+        if (event.severity === 'ERROR' || event.severity === 'WARNING') {
+          this.toasterService.displayToast({
+            message: event.message,
+            type: event.severity === 'ERROR' ? 'error' : 'warning',
+          });
+        }
         break;
 
       case 'player-buy-in': {
@@ -186,6 +213,8 @@ export class GameStateService implements OnDestroy {
           seatPosition: existing?.seatPosition ?? null,
         });
         state.players = players;
+        const name = this.getDisplayName(event.userId);
+        state.messages = [...state.messages, this.createInfoMessage(event.gameId, `${name} bought in for ${LangUtils.formatCurrency(event.amount)}`)];
         break;
       }
 
@@ -206,6 +235,8 @@ export class GameStateService implements OnDestroy {
           tables.set(event.toTableId, createInitialTableState(event.toTableId));
           state.tables = tables;
         }
+        const name = this.getDisplayName(event.userId);
+        state.messages = [...state.messages, this.createInfoMessage(event.gameId, `${name} was assigned to a table`)];
         break;
       }
 
@@ -228,6 +259,7 @@ export class GameStateService implements OnDestroy {
           lastAction: null,
         });
         state.tables = tables;
+        state.messages = [...state.messages, this.createInfoMessage(event.gameId, `Hand #${event.handNumber} started`)];
         break;
       }
 
@@ -321,6 +353,12 @@ export class GameStateService implements OnDestroy {
           });
           state.tables = tables;
         }
+        for (const pot of event.potResults) {
+          for (const winner of pot.winners) {
+            const name = this.getDisplayName(winner.userId);
+            state.messages = [...state.messages, this.createInfoMessage(event.gameId, `${name} won ${LangUtils.formatCurrency(winner.amount)} (${winner.handDescription})`)];
+          }
+        }
         break;
       }
 
@@ -342,6 +380,8 @@ export class GameStateService implements OnDestroy {
 
         const players = new Map<string, PlayerState>();
         for (const player of event.players) {
+          const displayName = player.user.alias || player.user.name || player.user.id;
+          this.displayNames.set(player.user.id, displayName);
           players.set(player.user.id, {
             userId: player.user.id,
             chipCount: player.chipCount,
@@ -393,12 +433,14 @@ export class GameStateService implements OnDestroy {
         });
         state.tables = tables;
 
-        // Update player seat positions from the table snapshot
+        // Update player seat positions and display names from the table snapshot
         const players = new Map(state.players);
         for (let i = 0; i < t.seats.length; i++) {
           const seat = t.seats[i];
           if (seat.player) {
             const userId = seat.player.user.id;
+            const displayName = seat.player.user.alias || seat.player.user.name || userId;
+            this.displayNames.set(userId, displayName);
             const existing = players.get(userId);
             if (existing) {
               players.set(userId, { ...existing, seatPosition: i, tableId: t.id });

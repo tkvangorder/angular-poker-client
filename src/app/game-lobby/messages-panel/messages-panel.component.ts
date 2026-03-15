@@ -9,4 +9,14 @@ import { GameMessageEvent, UserMessageEvent } from '../../game/game-events';
 })
 export class MessagesPanelComponent {
   @Input() messages: (GameMessageEvent | UserMessageEvent)[] = [];
+
+  getMessageClass(msg: GameMessageEvent | UserMessageEvent): string {
+    if (msg.eventType === 'user-message') {
+      switch (msg.severity) {
+        case 'ERROR': return 'text-error';
+        case 'WARNING': return 'text-warning';
+      }
+    }
+    return '';
+  }
 }

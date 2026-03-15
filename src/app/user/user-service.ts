@@ -58,6 +58,10 @@ export class UserService {
     return user;
   }
 
+  isAdmin(user: User): boolean {
+    return user.roles?.includes('ADMIN') ?? false;
+  }
+
   observeCurrentUser(): Observable<User | undefined> {
     if (!this.currentUser$.getValue()) {
       const storedUser = localStorage.getItem('currentUser');

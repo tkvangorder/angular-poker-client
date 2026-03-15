@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { CashGameService } from '../../../game/cash-game.service';
 import { CashGameDetails, GameStatus } from '../../../game/game-models';
 import { LangUtils } from '../../../lib/lang.utils';
-import { UserService } from '../../../user/user-service';
 
 @Component({
     selector: 'app-cash-game-list',
@@ -12,7 +11,6 @@ import { UserService } from '../../../user/user-service';
 })
 export class CashGameListComponent {
   private cashGameService = inject(CashGameService);
-  private userService = inject(UserService);
 
   games$ = this.cashGameService.getGames();
   selectedGame$ = this.cashGameService.getSelectedGame();
@@ -27,12 +25,6 @@ export class CashGameListComponent {
 
   formatBuyIn(game: CashGameDetails): string {
     return LangUtils.formatCurrency(game.maxBuyIn);
-  }
-
-  isRegistered(game: CashGameDetails): boolean {
-    const user = this.userService.getCurrentUser();
-    if (!user?.id || !game.players) return false;
-    return game.players.some((p) => p.user?.id === user.id);
   }
 
   statusBadgeClass(status: GameStatus): string {

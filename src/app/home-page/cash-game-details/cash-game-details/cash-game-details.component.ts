@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CashGameService } from '../../../game/cash-game.service';
 import { CashGameDetails, GameStatus } from '../../../game/game-models';
-import { UserService } from '../../../user/user-service';
-import { ToasterService } from '../../../toaster/toaster.service';
 import { LangUtils } from '../../../lib/lang.utils';
 
 @Component({
@@ -14,8 +12,6 @@ import { LangUtils } from '../../../lib/lang.utils';
 })
 export class CashGameDetailsComponent {
   private cashGameService = inject(CashGameService);
-  private userService = inject(UserService);
-  private toasterService = inject(ToasterService);
   private router = inject(Router);
 
   selectedGame$ = this.cashGameService.getSelectedGame();
@@ -26,28 +22,6 @@ export class CashGameDetailsComponent {
 
   formatBuyIn(game: CashGameDetails): string {
     return LangUtils.formatCurrency(game.maxBuyIn);
-  }
-
-  isRegistered(game: CashGameDetails): boolean {
-    const user = this.userService.getCurrentUser();
-    if (!user?.id || !game.players) return false;
-    return game.players.some((p) => p.user?.id === user.id);
-  }
-
-  canJoin(game: CashGameDetails): boolean {
-    return this.isRegistered(game);
-  }
-
-  register(game: CashGameDetails): void {
-    this.cashGameService.registerForGame(game.id).subscribe({
-      error: (err) => this.toasterService.displayToast({ message: err.message, type: 'error' }),
-    });
-  }
-
-  unregister(game: CashGameDetails): void {
-    this.cashGameService.unregisterFromGame(game.id).subscribe({
-      error: (err) => this.toasterService.displayToast({ message: err.message, type: 'error' }),
-    });
   }
 
   joinGame(game: CashGameDetails): void {

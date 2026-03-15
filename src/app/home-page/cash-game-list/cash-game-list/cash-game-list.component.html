@@ -9,9 +9,6 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <h3 class="font-semibold text-base truncate">{{ game.name }}</h3>
-              @if (isRegistered(game)) {
-                <span class="badge badge-accent badge-sm">Registered</span>
-              }
             </div>
             <p class="text-sm text-base-content/50 mt-0.5">
               {{ game.startTime | date:'EEE, MMM d \u2022 h:mm a' }}

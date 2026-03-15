@@ -23,12 +23,27 @@ export class LeaderboardPanelComponent {
     return this.players.some(p => p.userId === this.currentUserId);
   }
 
-  get maxBuyInDollars(): number {
-    return this.maxBuyIn / 100;
+  get currentPlayerChipCount(): number {
+    return this.players.find(p => p.userId === this.currentUserId)?.chipCount ?? 0;
+  }
+
+  get remainingBuyIn(): number {
+    if (this.maxBuyIn <= 0) return 0;
+    return Math.max(0, this.maxBuyIn - this.currentPlayerChipCount);
+  }
+
+  get remainingBuyInDollars(): number {
+    return this.remainingBuyIn / 100;
+  }
+
+  get isBuyInValid(): boolean {
+    if (!this.buyInAmount || this.buyInAmount <= 0) return false;
+    if (this.maxBuyIn > 0 && this.buyInAmount > this.remainingBuyInDollars) return false;
+    return true;
   }
 
   setMaxBuyIn(): void {
-    this.buyInAmount = this.maxBuyInDollars;
+    this.buyInAmount = this.remainingBuyInDollars;
   }
 
   onJoinGame(): void {

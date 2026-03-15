@@ -53,28 +53,4 @@ export class CashGameService {
     );
   }
 
-  registerForGame(gameId: string): Observable<CashGameDetails> {
-    return this.pokerClient.registerForGame(gameId).pipe(
-      tap((updatedGame) => this.updateGameState(updatedGame))
-    );
-  }
-
-  unregisterFromGame(gameId: string): Observable<CashGameDetails> {
-    return this.pokerClient.unregisterFromGame(gameId).pipe(
-      tap((updatedGame) => this.updateGameState(updatedGame))
-    );
-  }
-
-  private updateGameState(updatedGame: CashGameDetails): void {
-    // Update the game in the games list
-    const games = this.games$.value.map((g) =>
-      g.id === updatedGame.id ? updatedGame : g
-    );
-    this.games$.next(games);
-
-    // Update the selected game if it matches
-    if (this.selectedGame$.value?.id === updatedGame.id) {
-      this.selectedGame$.next(updatedGame);
-    }
-  }
 }
