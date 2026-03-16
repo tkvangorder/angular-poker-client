@@ -19,6 +19,7 @@ import { TableState, PlayerState } from '../../game/game-state.service';
   selector: 'app-phaser-table',
   standalone: true,
   template: '<div #gameContainer class="w-full h-full"></div>',
+  styles: [':host { display: block; width: 100%; height: 100%; }'],
 })
 export class PhaserTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('gameContainer', { static: true }) gameContainer!: ElementRef<HTMLDivElement>;

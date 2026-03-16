@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 export class DealerButton extends Phaser.GameObjects.Container {
   private circle: Phaser.GameObjects.Graphics;
   private label: Phaser.GameObjects.Text;
-  private radius = 12;
+  private radius = 10;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
@@ -13,10 +13,10 @@ export class DealerButton extends Phaser.GameObjects.Container {
     this.add(this.circle);
 
     this.label = new Phaser.GameObjects.Text(scene, 0, 0, 'D', {
-      fontSize: '11px',
+      fontSize: '10px',
       fontFamily: 'Arial, sans-serif',
       fontStyle: 'bold',
-      color: '#000000',
+      color: '#1e1e22',
       align: 'center',
     }).setOrigin(0.5, 0.5);
     this.add(this.label);
@@ -36,15 +36,13 @@ export class DealerButton extends Phaser.GameObjects.Container {
 
   resize(radius: number): void {
     this.radius = radius;
-    this.label.setFontSize(Math.max(8, Math.round(radius * 0.9)));
+    this.label.setFontSize(Math.max(7, Math.round(radius * 0.9)));
     this.drawChip();
   }
 
   private drawChip(): void {
     this.circle.clear();
-    this.circle.fillStyle(0xffffff, 1);
+    this.circle.fillStyle(0xeeeeee, 1);
     this.circle.fillCircle(0, 0, this.radius);
-    this.circle.lineStyle(1.5, 0x333333, 1);
-    this.circle.strokeCircle(0, 0, this.radius);
   }
 }

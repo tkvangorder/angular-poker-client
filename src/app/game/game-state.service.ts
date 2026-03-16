@@ -39,6 +39,7 @@ export interface TableState {
 
 export interface PlayerState {
   userId: string;
+  displayName: string;
   chipCount: number;
   tableId: string | null;
   seatPosition: number | null;
@@ -204,6 +205,7 @@ export class GameStateService implements OnDestroy {
         if (!players.has(event.userId)) {
           players.set(event.userId, {
             userId: event.userId,
+            displayName: this.getDisplayName(event.userId),
             chipCount: 0,
             tableId: null,
             seatPosition: null,
@@ -251,6 +253,7 @@ export class GameStateService implements OnDestroy {
         const existing = players.get(event.userId);
         players.set(event.userId, {
           userId: event.userId,
+          displayName: existing?.displayName ?? this.getDisplayName(event.userId),
           chipCount: event.newChipCount,
           tableId: existing?.tableId ?? null,
           seatPosition: existing?.seatPosition ?? null,
@@ -266,6 +269,7 @@ export class GameStateService implements OnDestroy {
         const existing = players.get(event.userId);
         players.set(event.userId, {
           userId: event.userId,
+          displayName: existing?.displayName ?? this.getDisplayName(event.userId),
           chipCount: existing?.chipCount ?? 0,
           tableId: event.toTableId,
           seatPosition: existing?.seatPosition ?? null,
@@ -430,6 +434,7 @@ export class GameStateService implements OnDestroy {
           this.displayNames.set(player.user.id, displayName);
           players.set(player.user.id, {
             userId: player.user.id,
+            displayName,
             chipCount: player.chipCount,
             tableId: player.tableId,
             seatPosition: null,

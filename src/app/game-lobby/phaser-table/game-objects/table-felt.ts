@@ -9,31 +9,19 @@ export class TableFelt extends Phaser.GameObjects.Graphics {
   draw(cx: number, cy: number, rx: number, ry: number): void {
     this.clear();
 
-    // Outer rail — dark brown
-    this.fillStyle(0x3e2723, 1);
-    this.fillEllipse(cx, cy, rx * 2 + 28, ry * 2 + 28);
+    // Outer edge — very subtle lighter border
+    this.lineStyle(2, 0x555555, 0.5);
+    this.strokeEllipse(cx, cy, rx * 2 + 6, ry * 2 + 6);
 
-    // Rail highlight — lighter brown
-    this.fillStyle(0x5d4037, 1);
-    this.fillEllipse(cx, cy, rx * 2 + 20, ry * 2 + 20);
-
-    // Rail inner edge
-    this.fillStyle(0x3e2723, 1);
-    this.fillEllipse(cx, cy, rx * 2 + 8, ry * 2 + 8);
-
-    // Felt — dark green base
-    this.fillStyle(0x1b5e20, 1);
+    // Felt — dark charcoal base
+    this.fillStyle(0x2a2a2e, 1);
     this.fillEllipse(cx, cy, rx * 2, ry * 2);
 
-    // Felt — lighter center for gradient effect
-    this.fillStyle(0x2e7d32, 1);
-    this.fillEllipse(cx, cy, rx * 1.6, ry * 1.6);
+    // Subtle lighter center for depth
+    this.fillStyle(0x323236, 1);
+    this.fillEllipse(cx, cy, rx * 1.5, ry * 1.5);
 
-    this.fillStyle(0x388e3c, 1);
-    this.fillEllipse(cx, cy, rx * 1.1, ry * 1.1);
-
-    // Gold betting line
-    this.lineStyle(1.5, 0xffd54f, 0.35);
-    this.strokeEllipse(cx, cy, rx * 1.2, ry * 1.2);
+    this.fillStyle(0x38383c, 1);
+    this.fillEllipse(cx, cy, rx * 0.9, ry * 0.9);
   }
 }

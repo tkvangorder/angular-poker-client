@@ -6,10 +6,9 @@ export class PotDisplay extends Phaser.GameObjects.Text {
     super(scene, x, y, '', {
       fontSize: '14px',
       fontFamily: 'Arial, sans-serif',
-      color: '#ffffff',
+      fontStyle: 'bold',
+      color: '#cccccc',
       align: 'center',
-      stroke: '#000000',
-      strokeThickness: 3,
     });
     scene.add.existing(this);
     this.setOrigin(0.5, 0);
@@ -28,13 +27,6 @@ export class PotDisplay extends Phaser.GameObjects.Text {
     }
 
     const dollars = total / 100;
-    let text = `Pot: $${dollars.toFixed(2)}`;
-    if (pots.length > 1) {
-      const sides = pots
-        .slice(1)
-        .map((p, i) => `Side ${i + 1}: $${(p.potAmount / 100).toFixed(2)}`);
-      text += '\n' + sides.join('  ');
-    }
-    this.setText(text);
+    this.setText(`$${dollars.toFixed(2)}`);
   }
 }
