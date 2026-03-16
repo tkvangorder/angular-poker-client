@@ -117,7 +117,8 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
     this.activeTab = tab;
   }
 
-  getPlayersArray(players: Map<string, PlayerState>): PlayerState[] {
+  getPlayersArray(players: Map<string, PlayerState> | null): PlayerState[] {
+    if (!players) return [];
     return Array.from(players.values()).sort((a, b) => b.chipCount - a.chipCount);
   }
 

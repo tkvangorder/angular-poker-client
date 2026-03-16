@@ -1,12 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CashTableComponent } from '../../game-page/cash-table/cash-table.component';
+import { PhaserTableComponent } from '../phaser-table/phaser-table.component';
 import { TableState, PlayerState } from '../../game/game-state.service';
 import { GameStatus } from '../../game/game-models';
 
 @Component({
   selector: 'app-table-view',
-  imports: [CommonModule, CashTableComponent],
+  imports: [CommonModule, PhaserTableComponent],
   templateUrl: './table-view.component.html',
   styleUrl: './table-view.component.css',
 })
@@ -14,6 +14,7 @@ export class TableViewComponent {
   @Input() tableState: TableState | null = null;
   @Input() players: PlayerState[] = [];
   @Input() gameStatus: GameStatus | null = null;
+  @Input() currentUserId: string = '';
 
   get showOverlay(): boolean {
     return this.gameStatus === 'PAUSED' || this.gameStatus === 'BALANCING';

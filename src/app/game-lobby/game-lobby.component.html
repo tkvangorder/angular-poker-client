@@ -118,7 +118,9 @@
           @if (myTableState$ | async; as tableState) {
             <app-table-view
               [tableState]="tableState"
+              [players]="getPlayersArray(players$ | async)"
               [gameStatus]="(gameStatus$ | async)"
+              [currentUserId]="currentUserId"
             />
           } @else {
             <div class="flex items-center justify-center h-full card-surface">
@@ -140,7 +142,9 @@
           @if (myTableState$ | async; as tableState) {
             <app-table-view
               [tableState]="tableState"
+              [players]="getPlayersArray(players$ | async)"
               [gameStatus]="(gameStatus$ | async)"
+              [currentUserId]="currentUserId"
             />
           } @else {
             <div class="flex items-center justify-center h-full card-surface rounded-lg">
