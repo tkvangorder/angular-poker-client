@@ -1,0 +1,60 @@
+<div class="flex items-center gap-3 bg-base-200 rounded-lg px-4 py-3"
+     [class.opacity-40]="!isMyTurn"
+     [class.pointer-events-none]="!isMyTurn">
+
+  <!-- Fold -->
+  <button class="btn btn-error btn-sm" [disabled]="!isMyTurn" (click)="fold()">
+    Fold
+  </button>
+
+  <!-- Check / Call -->
+  <button class="btn btn-primary btn-sm" [disabled]="!isMyTurn" (click)="checkOrCall()">
+    @if (hasBetToCall) {
+      Call {{ formatCents(callAmount) }}
+    } @else {
+      Check
+    }
+  </button>
+
+  <!-- Divider -->
+  <div class="divider divider-horizontal m-0"></div>
+
+  <!-- Bet / Raise section -->
+  <div class="flex items-center gap-2 flex-1">
+    <!-- Presets -->
+    <button class="btn btn-outline btn-xs" [disabled]="!isMyTurn" (click)="setHalfPot()">
+      &frac12; Pot
+    </button>
+    <button class="btn btn-outline btn-xs" [disabled]="!isMyTurn" (click)="setFullPot()">
+      Pot
+    </button>
+    <button class="btn btn-outline btn-xs" [disabled]="!isMyTurn" (click)="allIn()">
+      All In
+    </button>
+
+    <!-- Slider -->
+    <input
+      type="range"
+      class="range range-primary range-xs flex-1 min-w-[100px]"
+      [min]="minBet"
+      [max]="maxBet"
+      [step]="step"
+      [(ngModel)]="betAmount"
+      [disabled]="!isMyTurn"
+    />
+
+    <!-- Amount display -->
+    <span class="text-sm font-mono whitespace-nowrap min-w-[70px] text-right">
+      {{ formatCents(betAmount) }}
+    </span>
+
+    <!-- Submit bet -->
+    <button class="btn btn-success btn-sm" [disabled]="!isMyTurn" (click)="submitBet()">
+      @if (hasBetToCall) {
+        Raise
+      } @else {
+        Bet
+      }
+    </button>
+  </div>
+</div>

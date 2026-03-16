@@ -32,6 +32,9 @@ export interface TableState {
   potResults: PotResult[] | null;
   seatCards: Map<number, SeatCard[]>;
   lastAction: { seatPosition: number; action: string } | null;
+  actionPosition: number | null;
+  currentBet: number;
+  minimumRaise: number;
 }
 
 export interface PlayerState {
@@ -74,6 +77,9 @@ function createInitialTableState(tableId: string): TableState {
     potResults: null,
     seatCards: new Map(),
     lastAction: null,
+    actionPosition: null,
+    currentBet: 0,
+    minimumRaise: 0,
   };
 }
 
@@ -294,6 +300,9 @@ export class GameStateService implements OnDestroy {
           potResults: null,
           seatCards: new Map(),
           lastAction: null,
+          actionPosition: null,
+          currentBet: 0,
+          minimumRaise: 0,
         });
         state.tables = tables;
         state.messages = [...state.messages, this.createInfoMessage(event.gameId, `Hand #${event.handNumber} started`)];
@@ -467,6 +476,9 @@ export class GameStateService implements OnDestroy {
           potResults: null,
           seatCards,
           lastAction: null,
+          actionPosition: t.actionPosition ?? null,
+          currentBet: t.currentBet,
+          minimumRaise: t.minimumRaise,
         });
         state.tables = tables;
 

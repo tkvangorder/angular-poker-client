@@ -131,6 +131,18 @@
             </div>
           }
         </div>
+
+        <!-- Action panel -->
+        @if (myTableState$ | async; as tableState) {
+          <div class="mt-2">
+            <app-action-panel
+              [tableState]="tableState"
+              [playerChipCount]="(myChipCount$ | async) ?? 0"
+              [seatPosition]="(mySeatPosition$ | async) ?? null"
+              (playerAction)="sendPlayerAction($event, tableState.tableId)"
+            />
+          </div>
+        }
       </div>
     </div>
 
@@ -174,6 +186,20 @@
           </div>
         }
       </div>
+
+      <!-- Mobile action panel -->
+      @if (activeTab === 'table') {
+        @if (myTableState$ | async; as tableState) {
+          <div class="px-2 pb-1">
+            <app-action-panel
+              [tableState]="tableState"
+              [playerChipCount]="(myChipCount$ | async) ?? 0"
+              [seatPosition]="(mySeatPosition$ | async) ?? null"
+              (playerAction)="sendPlayerAction($event, tableState.tableId)"
+            />
+          </div>
+        }
+      }
 
       <!-- Bottom navigation -->
       <div class="btm-nav btm-nav-sm">

@@ -8,16 +8,18 @@ import { UserService } from '../user/user-service';
 import { GameStatus } from '../game/game-models';
 import { PokerRestClient } from '../rest/poker-rest-client';
 import { LangUtils } from '../lib/lang.utils';
+import { PlayerAction } from '../game/game-commands';
 import { LeaderboardPanelComponent } from './leaderboard-panel/leaderboard-panel.component';
 import { MessagesPanelComponent } from './messages-panel/messages-panel.component';
 import { TableViewComponent } from './table-view/table-view.component';
+import { ActionPanelComponent } from './action-panel/action-panel.component';
 import { Observable, combineLatest, map, distinctUntilChanged } from 'rxjs';
 
 type ActiveTab = 'table' | 'leaderboard' | 'messages';
 
 @Component({
   selector: 'app-game-lobby',
-  imports: [CommonModule, FormsModule, LeaderboardPanelComponent, MessagesPanelComponent, TableViewComponent],
+  imports: [CommonModule, FormsModule, LeaderboardPanelComponent, MessagesPanelComponent, TableViewComponent, ActionPanelComponent],
   templateUrl: './game-lobby.component.html',
 })
 export class GameLobbyComponent implements OnInit, OnDestroy {
@@ -41,6 +43,8 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
 
   myTableId$!: Observable<string | null>;
   myTableState$!: Observable<TableState | null>;
+  myChipCount$!: Observable<number>;
+  mySeatPosition$!: Observable<number | null>;
 
   get isAdmin(): boolean {
     const user = this.userService.getCurrentUser();
@@ -71,6 +75,16 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
         return tableId ? (tables.get(tableId) ?? null) : null;
       })
     );
+
+    this.myChipCount$ = this.players$.pipe(
+      map(players => players.get(this.currentUserId)?.chipCount ?? 0),
+      distinctUntilChanged()
+    );
+
+    this.mySeatPosition$ = this.players$.pipe(
+      map(players => players.get(this.currentUserId)?.seatPosition ?? null),
+      distinctUntilChanged()
+    );
   }
 
   ngOnDestroy(): void {
@@ -98,6 +112,15 @@ export class GameLobbyComponent implements OnInit, OnDestroy {
       commandId: 'buy-in',
       gameId: this.gameId,
       amount: LangUtils.asCents(amount),
+    });
+  }
+
+  sendPlayerAction(action: PlayerAction, tableId: string): void {
+    this.webSocketService.sendCommand({
+      commandId: 'player-action-command',
+      gameId: this.gameId,
+      tableId,
+      action,
     });
   }
 
