@@ -1,0 +1,249 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.table-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* ── Table ── */
+.table-container {
+  position: relative;
+  width: 70%;
+  aspect-ratio: 2.5 / 1;
+}
+
+.table-felt {
+  width: 100%;
+  height: 100%;
+  border-radius: 150px;
+  background: radial-gradient(ellipse at center, #8b1a1a 0%, #4a0e0e 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.3),
+    0 0 50px rgba(0, 0, 0, 0.4);
+}
+
+.table-rail {
+  position: absolute;
+  inset: 0;
+  border-radius: 150px;
+  background: repeating-linear-gradient(90deg, #2a1a0a 0px, #3f2f1f 3px, #2a1a0a 6px, #1f1005 9px);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.table-inner-line {
+  position: absolute;
+  inset: 12px;
+  border-radius: 138px;
+  border: 1.5px solid rgba(218, 165, 32, 0.5);
+  box-shadow: 0 0 8px rgba(218, 165, 32, 0.15);
+  pointer-events: none;
+}
+
+/* ── Community Cards ── */
+.community-cards {
+  display: flex;
+  gap: 6px;
+  z-index: 1;
+}
+
+.card-slot {
+  width: 48px;
+  height: 67px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.card-slot .suit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 22px;
+  opacity: 0.9;
+}
+
+.card-slot .rank {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.card-placeholder {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+}
+
+.card-back {
+  background: #1e7d94;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.card-back::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1.5px solid rgba(30, 155, 180, 0.5);
+  border-radius: 2px;
+}
+
+/* ── Pot ── */
+.pot-display {
+  position: absolute;
+  bottom: 28%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Seats ── */
+.seat {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 5;
+}
+
+.seat-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  flex-shrink: 0;
+  background: #6b3a2a;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.seat-info {
+  border-radius: 10px;
+  padding: 6px 10px;
+  min-width: 80px;
+  background: rgba(42, 26, 10, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.seat-info.active {
+  border-color: #14b8a6;
+  box-shadow: 0 0 12px rgba(20, 184, 166, 0.3);
+}
+
+.seat-name {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.seat-stack {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.seat-cards {
+  display: flex;
+  gap: 2px;
+  margin-top: 3px;
+}
+
+.hole-card {
+  width: 28px;
+  height: 20px;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hole-card-face {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.hole-card-back {
+  background: #1e7d94;
+}
+
+.hole-card .rank {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.hole-card .mini-suit {
+  position: absolute;
+  bottom: 0;
+  right: 1px;
+  font-size: 8px;
+}
+
+/* ── Dealer Button ── */
+.dealer-chip {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  z-index: 6;
+  transform: translate(-50%, -50%);
+}
+
+/* ── Seat Positioning ── */
+.seat-top-center, .seat-top-left, .seat-top-right { top:0; transform:translateX(-50%) translateY(-90%); flex-direction:column; align-items:center; }
+.seat-top-center { left:50%; }
+.seat-top-left { left:25%; }
+.seat-top-right { left:75%; }
+.seat-right-upper, .seat-right-lower { right:0; transform:translateX(90%) translateY(-50%); flex-direction:row; }
+.seat-right-upper { top:20%; }
+.seat-right-lower { top:80%; }
+.seat-bottom-right, .seat-bottom-left { bottom:0; transform:translateX(-50%) translateY(90%); flex-direction:column-reverse; align-items:center; }
+.seat-bottom-right { left:70%; }
+.seat-bottom-left { left:30%; }
+.seat-left-lower, .seat-left-upper { left:0; transform:translateX(-90%) translateY(-50%); flex-direction:row-reverse; }
+.seat-left-lower { top:80%; }
+.seat-left-upper { top:20%; }

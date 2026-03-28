@@ -4,10 +4,10 @@
 }
 
 .player-details {
-  background-color: rgba(32, 24, 18, 0.85);
+  background-color: rgba(42, 26, 10, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top-left-radius: 150px;
-  border-bottom-left-radius: 150px;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
   color: #fff;
   padding: 2px 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);

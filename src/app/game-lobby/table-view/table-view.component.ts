@@ -1,12 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PhaserTableComponent } from '../phaser-table/phaser-table.component';
+import { CssPokerTableComponent } from '../css-poker-table/css-poker-table.component';
 import { TableState, PlayerState } from '../../game/game-state.service';
 import { GameStatus } from '../../game/game-models';
 
 @Component({
   selector: 'app-table-view',
-  imports: [CommonModule, PhaserTableComponent],
+  imports: [CommonModule, CssPokerTableComponent],
   templateUrl: './table-view.component.html',
   styleUrl: './table-view.component.css',
 })
