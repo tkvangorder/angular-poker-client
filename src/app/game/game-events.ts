@@ -1,10 +1,12 @@
 /**
  * Game events received from the server via WebSocket.
  * All events use `eventType` as the discriminator (kebab-case).
+ *
+ * Seat positions are 1-indexed (range 1..numberOfSeats), matching the server wire format.
  */
 
 import { Card } from '../poker/poker-models';
-import { GameStatus, HandPhase, Player, SeatCard, Table } from './game-models';
+import { GameStatus, HandPhase, Player, Pot, SeatCard, Table, TableStatus } from './game-models';
 import { PlayerAction } from './game-commands';
 
 // --- Game-Level Events ---
@@ -12,6 +14,24 @@ import { PlayerAction } from './game-commands';
 export type MessageSeverity = 'INFO' | 'WARNING' | 'ERROR';
 
 export { HandPhase, SeatCard };
+
+/** Codified per-hand status of a seat. */
+export type HandPlayerStatus =
+  | 'WAITING'
+  | 'ACTIVE'
+  | 'TO_ACT'
+  | 'FOLDED'
+  | 'ALL_IN'
+  | 'SITTING_OUT';
+
+/** Compact per-seat snapshot embedded in table events (HandStarted, BettingRoundComplete). */
+export interface SeatSummary {
+  seatPosition: number;
+  userId: string | null;
+  status: HandPlayerStatus;
+  chipCount: number;
+  currentBetAmount: number;
+}
 
 export interface GameStatusChangedEvent {
   eventType: 'game-status-changed';
@@ -52,8 +72,8 @@ export interface PlayerSeatedEvent {
   tableId: string;
 }
 
-export interface PlayerMovedEvent {
-  eventType: 'player-moved';
+export interface PlayerMovedTablesEvent {
+  eventType: 'player-moved-tables';
   timestamp: string;
   gameId: string;
   userId: string;
@@ -62,6 +82,33 @@ export interface PlayerMovedEvent {
 }
 
 // --- Table-Level Events ---
+
+export interface TableStatusChangedEvent {
+  eventType: 'table-status-changed';
+  timestamp: string;
+  gameId: string;
+  tableId: string;
+  oldStatus: TableStatus;
+  newStatus: TableStatus;
+}
+
+export interface HandPhaseChangedEvent {
+  eventType: 'hand-phase-changed';
+  timestamp: string;
+  gameId: string;
+  tableId: string;
+  oldPhase: HandPhase;
+  newPhase: HandPhase;
+}
+
+export interface WaitingForPlayersEvent {
+  eventType: 'waiting-for-players';
+  timestamp: string;
+  gameId: string;
+  tableId: string;
+  activePlayers: number;
+  seatedPlayers: number;
+}
 
 export interface HandStartedEvent {
   eventType: 'hand-started';
@@ -74,8 +121,10 @@ export interface HandStartedEvent {
   bigBlindPosition: number;
   smallBlindAmount: number;
   bigBlindAmount: number;
+  currentBet: number;
+  minimumRaise: number;
+  seats: SeatSummary[];
 }
-
 
 export interface HoleCardsDealtEvent {
   eventType: 'hole-cards-dealt';
@@ -93,7 +142,8 @@ export interface CommunityCardsDealtEvent {
   gameId: string;
   tableId: string;
   cards: Card[];
-  phase: string;
+  phase: HandPhase;
+  allCommunityCards: Card[];
 }
 
 export interface PlayerActedEvent {
@@ -105,6 +155,10 @@ export interface PlayerActedEvent {
   userId: string;
   action: PlayerAction;
   chipCount: number;
+  resultingStatus: HandPlayerStatus;
+  currentBet: number;
+  minimumRaise: number;
+  potTotal: number;
 }
 
 export interface PlayerTimedOutEvent {
@@ -117,9 +171,19 @@ export interface PlayerTimedOutEvent {
   defaultAction: PlayerAction;
 }
 
-export interface PotInfo {
-  potIndex: number;
-  potAmount: number;
+export interface ActionOnPlayerEvent {
+  eventType: 'action-on-player';
+  timestamp: string;
+  gameId: string;
+  tableId: string;
+  seatPosition: number;
+  userId: string;
+  actionDeadline: string;
+  currentBet: number;
+  minimumRaise: number;
+  callAmount: number;
+  playerChipCount: number;
+  potTotal: number;
 }
 
 export interface BettingRoundCompleteEvent {
@@ -128,7 +192,9 @@ export interface BettingRoundCompleteEvent {
   gameId: string;
   tableId: string;
   completedPhase: HandPhase;
-  pots: PotInfo[];
+  pots: Pot[];
+  seats: SeatSummary[];
+  potTotal: number;
 }
 
 export interface Winner {
@@ -202,12 +268,16 @@ export type GameEvent =
   | PlayerJoinedEvent
   | PlayerSeatedEvent
   | PlayerBuyInEvent
-  | PlayerMovedEvent
+  | PlayerMovedTablesEvent
+  | TableStatusChangedEvent
+  | HandPhaseChangedEvent
+  | WaitingForPlayersEvent
   | HandStartedEvent
   | HoleCardsDealtEvent
   | CommunityCardsDealtEvent
   | PlayerActedEvent
   | PlayerTimedOutEvent
+  | ActionOnPlayerEvent
   | BettingRoundCompleteEvent
   | ShowdownResultEvent
   | HandCompleteEvent

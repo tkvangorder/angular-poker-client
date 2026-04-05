@@ -37,17 +37,21 @@ const RANK_LABELS: Record<string, string> = {
   [CardValue.ACE]: 'A',
 };
 
-/** CSS class for each seat index (0 = bottom-center hero seat, clockwise) */
+/**
+ * CSS class for each seat position (1-indexed, matching server wire format).
+ * Position 1 = hero (bottom center-left), going clockwise.
+ * Array index = seatPosition - 1.
+ */
 const SEAT_POSITION_CLASSES: string[] = [
-  'seat-bottom-left',    // 0: hero (bottom center-left)
-  'seat-left-lower',     // 1: bottom-left
-  'seat-left-upper',     // 2: left-lower
-  'seat-top-left',       // 3: left-upper / top-left
-  'seat-top-center',     // 4: top center
-  'seat-top-right',      // 5: top-right
-  'seat-right-upper',    // 6: right-upper
-  'seat-right-lower',    // 7: right-lower
-  'seat-bottom-right',   // 8: bottom-right
+  'seat-bottom-left',    // seat 1: hero (bottom center-left)
+  'seat-left-lower',     // seat 2: bottom-left
+  'seat-left-upper',     // seat 3: left-lower
+  'seat-top-left',       // seat 4: left-upper / top-left
+  'seat-top-center',     // seat 5: top center
+  'seat-top-right',      // seat 6: top-right
+  'seat-right-upper',    // seat 7: right-upper
+  'seat-right-lower',    // seat 8: right-lower
+  'seat-bottom-right',   // seat 9: bottom-right
 ];
 
 interface CardViewModel {
@@ -73,20 +77,21 @@ interface SeatViewModel {
 }
 
 /**
- * Dealer button positions on the rail for each seat index.
+ * Dealer button positions on the rail for each seat position (1-indexed).
  * Values are [top%, left%] placing the button on the table edge
  * between the seat and center, with offset to avoid overlap.
+ * Array index = seatPosition - 1.
  */
 const DEALER_BUTTON_POSITIONS: [number, number][] = [
-  [88, 38],   // 0: bottom-left (hero)
-  [78, 8],    // 1: left-lower
-  [25, 8],    // 2: left-upper
-  [8, 28],    // 3: top-left
-  [5, 50],    // 4: top center
-  [8, 72],    // 5: top-right
-  [25, 92],   // 6: right-upper
-  [78, 92],   // 7: right-lower
-  [88, 62],   // 8: bottom-right
+  [88, 38],   // seat 1: bottom-left (hero)
+  [78, 8],    // seat 2: left-lower
+  [25, 8],    // seat 3: left-upper
+  [8, 28],    // seat 4: top-left
+  [5, 50],    // seat 5: top center
+  [8, 72],    // seat 6: top-right
+  [25, 92],   // seat 7: right-upper
+  [78, 92],   // seat 8: right-lower
+  [88, 62],   // seat 9: bottom-right
 ];
 
 @Component({
@@ -135,7 +140,7 @@ export class CssPokerTableComponent implements OnChanges {
 
   private buildPot(): void {
     const pots = this.tableState?.pots ?? [];
-    const totalCents = pots.reduce((sum, p) => sum + p.potAmount, 0);
+    const totalCents = pots.reduce((sum, p) => sum + p.amount, 0);
     this.potTotal = totalCents / 100;
   }
 
@@ -151,11 +156,12 @@ export class CssPokerTableComponent implements OnChanges {
     }
 
     this.seatViewModels = [];
-    for (let i = 0; i < MAX_SEATS; i++) {
-      const player = seatPlayerMap.get(i);
-      const seatCards = ts?.seatCards.get(i) ?? null;
-      const isActive = ts?.actionPosition === i;
-      const isDealer = ts?.dealerPosition === i;
+    // Seat positions are 1-indexed: 1..MAX_SEATS
+    for (let pos = 1; pos <= MAX_SEATS; pos++) {
+      const player = seatPlayerMap.get(pos);
+      const seatCards = ts?.seatCards.get(pos) ?? null;
+      const isActive = ts?.actionPosition === pos;
+      const isDealer = ts?.dealerPosition === pos;
 
       if (player) {
         const displayName = player.userId === this.currentUserId
@@ -163,7 +169,7 @@ export class CssPokerTableComponent implements OnChanges {
           : player.displayName;
 
         this.seatViewModels.push({
-          positionClass: SEAT_POSITION_CLASSES[i],
+          positionClass: SEAT_POSITION_CLASSES[pos - 1],
           player: {
             displayName: displayName.length > 10 ? displayName.substring(0, 9) + '\u2026' : displayName,
             initial: displayName.charAt(0).toUpperCase(),
@@ -175,7 +181,7 @@ export class CssPokerTableComponent implements OnChanges {
         });
       } else {
         this.seatViewModels.push({
-          positionClass: SEAT_POSITION_CLASSES[i],
+          positionClass: SEAT_POSITION_CLASSES[pos - 1],
           player: null,
           cards: [],
           isActive: false,
@@ -186,9 +192,9 @@ export class CssPokerTableComponent implements OnChanges {
   }
 
   private buildDealerButton(): void {
-    const pos = this.tableState?.dealerPosition ?? -1;
-    if (pos >= 0 && pos < MAX_SEATS) {
-      const [top, left] = DEALER_BUTTON_POSITIONS[pos];
+    const pos = this.tableState?.dealerPosition ?? null;
+    if (pos != null && pos >= 1 && pos <= MAX_SEATS) {
+      const [top, left] = DEALER_BUTTON_POSITIONS[pos - 1];
       this.dealerButtonStyle = { top: `${top}%`, left: `${left}%` };
     } else {
       this.dealerButtonStyle = null;

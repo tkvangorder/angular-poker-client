@@ -120,7 +120,7 @@ export class PokerTableScene extends Phaser.Scene {
       return;
     }
 
-    // Build seatPosition → PlayerState map
+    // Build seatPosition → PlayerState map (seat positions are 1-indexed)
     const seatPlayerMap = new Map<number, PlayerState>();
     for (const p of players) {
       if (p.seatPosition != null) {
@@ -128,19 +128,20 @@ export class PokerTableScene extends Phaser.Scene {
       }
     }
 
-    // Update seats
-    for (let i = 0; i < MAX_SEATS; i++) {
-      const player = seatPlayerMap.get(i);
-      const cards = ts.seatCards.get(i) ?? null;
-      const isActive = ts.actionPosition === i;
+    // Update seats (seat positions are 1..MAX_SEATS)
+    for (let pos = 1; pos <= MAX_SEATS; pos++) {
+      const idx = pos - 1;
+      const player = seatPlayerMap.get(pos);
+      const cards = ts.seatCards.get(pos) ?? null;
+      const isActive = ts.actionPosition === pos;
 
       if (player) {
         const name = player.userId === this.currentUserId
           ? 'You'
           : player.displayName;
-        this.seats[i].updateSeat(name, player.chipCount, cards, isActive);
+        this.seats[idx].updateSeat(name, player.chipCount, cards, isActive);
       } else {
-        this.seats[i].updateSeat(null, null, null, false);
+        this.seats[idx].updateSeat(null, null, null, false);
       }
     }
 
@@ -151,8 +152,8 @@ export class PokerTableScene extends Phaser.Scene {
     this.potDisplay.updatePots(ts.pots);
 
     // Dealer button — on the table felt, between seat and center
-    if (ts.dealerPosition >= 0 && ts.dealerPosition < MAX_SEATS) {
-      const seatPos = this.seatPositions[ts.dealerPosition];
+    if (ts.dealerPosition != null && ts.dealerPosition >= 1 && ts.dealerPosition <= MAX_SEATS) {
+      const seatPos = this.seatPositions[ts.dealerPosition - 1];
       const dx = this.cx - seatPos.x;
       const dy = this.cy - seatPos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);

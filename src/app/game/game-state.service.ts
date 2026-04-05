@@ -2,37 +2,43 @@ import { inject, Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map, take } from 'rxjs/operators';
 import { Card } from '../poker/poker-models';
-import { GameStatus, Table } from './game-models';
+import { GameStatus, Pot, SeatStatus, TableStatus } from './game-models';
 import { GameWebSocketService } from './game-websocket.service';
 import { ToasterService } from '../toaster/toaster.service';
 import { LangUtils } from '../lib/lang.utils';
 import {
   GameEvent,
-  GameSnapshotEvent,
-  TableSnapshotEvent,
-  PotInfo,
   PotResult,
   SeatCard,
   HandPhase,
   GameMessageEvent,
   UserMessageEvent,
+  SeatSummary,
 } from './game-events';
 
 export interface TableState {
   tableId: string;
+  tableStatus: TableStatus | null;
   handNumber: number;
-  dealerPosition: number;
-  smallBlindPosition: number;
-  bigBlindPosition: number;
+  dealerPosition: number | null;
+  smallBlindPosition: number | null;
+  bigBlindPosition: number | null;
   smallBlindAmount: number;
   bigBlindAmount: number;
   communityCards: Card[];
-  pots: PotInfo[];
+  pots: Pot[];
+  potTotal: number;
   phase: HandPhase | null;
   potResults: PotResult[] | null;
+  /** Seat cards keyed by 1-indexed seat position. */
   seatCards: Map<number, SeatCard[]>;
+  /** Per-seat summary keyed by 1-indexed seat position. */
+  seatSummaries: Map<number, SeatSummary>;
   lastAction: { seatPosition: number; action: string } | null;
+  /** 1-indexed seat position of the player on the clock, or null. */
   actionPosition: number | null;
+  actionDeadline: string | null;
+  callAmount: number;
   currentBet: number;
   minimumRaise: number;
 }
@@ -42,6 +48,7 @@ export interface PlayerState {
   displayName: string;
   chipCount: number;
   tableId: string | null;
+  /** 1-indexed seat position (1..numberOfSeats), or null if not seated. */
   seatPosition: number | null;
 }
 
@@ -66,22 +73,39 @@ function createInitialState(): GameState {
 function createInitialTableState(tableId: string): TableState {
   return {
     tableId,
+    tableStatus: null,
     handNumber: 0,
-    dealerPosition: -1,
-    smallBlindPosition: -1,
-    bigBlindPosition: -1,
+    dealerPosition: null,
+    smallBlindPosition: null,
+    bigBlindPosition: null,
     smallBlindAmount: 0,
     bigBlindAmount: 0,
     communityCards: [],
     pots: [],
+    potTotal: 0,
     phase: null,
     potResults: null,
     seatCards: new Map(),
+    seatSummaries: new Map(),
     lastAction: null,
     actionPosition: null,
+    actionDeadline: null,
+    callAmount: 0,
     currentBet: 0,
     minimumRaise: 0,
   };
+}
+
+function summariesToMap(summaries: SeatSummary[]): Map<number, SeatSummary> {
+  const map = new Map<number, SeatSummary>();
+  for (const s of summaries) {
+    map.set(s.seatPosition, s);
+  }
+  return map;
+}
+
+function sumPots(pots: Pot[]): number {
+  return pots.reduce((sum, p) => sum + p.amount, 0);
 }
 
 @Injectable({
@@ -189,6 +213,49 @@ export class GameStateService implements OnDestroy {
     };
   }
 
+  private updateTable(
+    state: GameState,
+    tableId: string,
+    updater: (table: TableState) => TableState
+  ): void {
+    const tables = new Map(state.tables);
+    const existing = tables.get(tableId) ?? createInitialTableState(tableId);
+    tables.set(tableId, updater(existing));
+    state.tables = tables;
+  }
+
+  /**
+   * Syncs player seat positions from a SeatSummary list. Seat positions are 1-indexed.
+   */
+  private syncPlayersFromSummaries(
+    state: GameState,
+    tableId: string,
+    summaries: SeatSummary[]
+  ): void {
+    const players = new Map(state.players);
+    for (const s of summaries) {
+      if (!s.userId) continue;
+      const existing = players.get(s.userId);
+      if (existing) {
+        players.set(s.userId, {
+          ...existing,
+          seatPosition: s.seatPosition,
+          tableId,
+          chipCount: s.chipCount,
+        });
+      } else {
+        players.set(s.userId, {
+          userId: s.userId,
+          displayName: this.getDisplayName(s.userId),
+          chipCount: s.chipCount,
+          tableId,
+          seatPosition: s.seatPosition,
+        });
+      }
+    }
+    state.players = players;
+  }
+
   // --- Event Handling ---
 
   private handleEvent(event: GameEvent): void {
@@ -225,7 +292,6 @@ export class GameStateService implements OnDestroy {
         }
         state.players = players;
 
-        // Ensure target table state exists
         if (!state.tables.has(event.tableId)) {
           const tables = new Map(state.tables);
           tables.set(event.tableId, createInitialTableState(event.tableId));
@@ -264,7 +330,7 @@ export class GameStateService implements OnDestroy {
         break;
       }
 
-      case 'player-moved': {
+      case 'player-moved-tables': {
         const players = new Map(state.players);
         const existing = players.get(event.userId);
         players.set(event.userId, {
@@ -276,7 +342,6 @@ export class GameStateService implements OnDestroy {
         });
         state.players = players;
 
-        // Ensure target table state exists
         if (!state.tables.has(event.toTableId)) {
           const tables = new Map(state.tables);
           tables.set(event.toTableId, createInitialTableState(event.toTableId));
@@ -287,70 +352,99 @@ export class GameStateService implements OnDestroy {
         break;
       }
 
+      case 'table-status-changed': {
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          tableStatus: event.newStatus,
+        }));
+        break;
+      }
+
+      case 'hand-phase-changed': {
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          phase: event.newPhase,
+        }));
+        break;
+      }
+
+      case 'waiting-for-players': {
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          phase: 'WAITING_FOR_PLAYERS',
+        }));
+        break;
+      }
+
       case 'hand-started': {
-        const tables = new Map(state.tables);
-        const table = tables.get(event.tableId) ?? createInitialTableState(event.tableId);
-        tables.set(event.tableId, {
-          ...table,
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
           handNumber: event.handNumber,
           dealerPosition: event.dealerPosition,
           smallBlindPosition: event.smallBlindPosition,
           bigBlindPosition: event.bigBlindPosition,
           smallBlindAmount: event.smallBlindAmount,
           bigBlindAmount: event.bigBlindAmount,
+          currentBet: event.currentBet,
+          minimumRaise: event.minimumRaise,
           communityCards: [],
           pots: [],
+          potTotal: 0,
           phase: 'PREDEAL',
           potResults: null,
           seatCards: new Map(),
+          seatSummaries: summariesToMap(event.seats),
           lastAction: null,
           actionPosition: null,
-          currentBet: 0,
-          minimumRaise: 0,
-        });
-        state.tables = tables;
+          actionDeadline: null,
+          callAmount: 0,
+        }));
+        this.syncPlayersFromSummaries(state, event.tableId, event.seats);
         state.messages = [...state.messages, this.createInfoMessage(event.gameId, `Hand #${event.handNumber} started`)];
         break;
       }
 
       case 'hole-cards-dealt': {
-        const tables = new Map(state.tables);
-        const table = tables.get(event.tableId);
-        if (table) {
-          const seatCards = new Map(table.seatCards);
+        this.updateTable(state, event.tableId, (t) => {
+          const seatCards = new Map(t.seatCards);
           seatCards.set(event.seatPosition, event.cards);
-          tables.set(event.tableId, { ...table, seatCards });
-          state.tables = tables;
-        }
+          return { ...t, seatCards };
+        });
         break;
       }
 
       case 'community-cards-dealt': {
-        const tables = new Map(state.tables);
-        const table = tables.get(event.tableId);
-        if (table) {
-          tables.set(event.tableId, {
-            ...table,
-            communityCards: [...table.communityCards, ...event.cards],
-          });
-          state.tables = tables;
-        }
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          communityCards: event.allCommunityCards,
+          phase: event.phase,
+        }));
         break;
       }
 
       case 'player-acted': {
-        const tables = new Map(state.tables);
-        const table = tables.get(event.tableId);
-        if (table) {
-          tables.set(event.tableId, {
-            ...table,
+        this.updateTable(state, event.tableId, (t) => {
+          const seatSummaries = new Map(t.seatSummaries);
+          const prior = seatSummaries.get(event.seatPosition);
+          if (prior) {
+            seatSummaries.set(event.seatPosition, {
+              ...prior,
+              status: event.resultingStatus,
+              chipCount: event.chipCount,
+            });
+          }
+          return {
+            ...t,
             lastAction: {
               seatPosition: event.seatPosition,
               action: event.action.type,
             },
-          });
-          state.tables = tables;
-        }
+            currentBet: event.currentBet,
+            minimumRaise: event.minimumRaise,
+            potTotal: event.potTotal,
+            seatSummaries,
+          };
+        });
 
         // Update player chip count
         const players = new Map(state.players);
@@ -363,46 +457,51 @@ export class GameStateService implements OnDestroy {
       }
 
       case 'player-timed-out': {
-        const tables = new Map(state.tables);
-        const table = tables.get(event.tableId);
-        if (table) {
-          tables.set(event.tableId, {
-            ...table,
-            lastAction: {
-              seatPosition: event.seatPosition,
-              action: event.defaultAction.type,
-            },
-          });
-          state.tables = tables;
-        }
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          lastAction: {
+            seatPosition: event.seatPosition,
+            action: event.defaultAction.type,
+          },
+        }));
+        break;
+      }
+
+      case 'action-on-player': {
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          actionPosition: event.seatPosition,
+          actionDeadline: event.actionDeadline,
+          currentBet: event.currentBet,
+          minimumRaise: event.minimumRaise,
+          callAmount: event.callAmount,
+          potTotal: event.potTotal,
+        }));
         break;
       }
 
       case 'betting-round-complete': {
-        const tables = new Map(state.tables);
-        const table = tables.get(event.tableId);
-        if (table) {
-          tables.set(event.tableId, {
-            ...table,
-            pots: event.pots,
-            phase: event.completedPhase,
-            lastAction: null,
-          });
-          state.tables = tables;
-        }
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          pots: event.pots,
+          potTotal: event.potTotal,
+          seatSummaries: summariesToMap(event.seats),
+          // completedPhase is the phase that just finished; HandPhaseChanged
+          // drives the next phase. Clear per-round transient action state.
+          actionPosition: null,
+          actionDeadline: null,
+          callAmount: 0,
+          lastAction: null,
+        }));
+        this.syncPlayersFromSummaries(state, event.tableId, event.seats);
         break;
       }
 
       case 'showdown-result': {
-        const tables = new Map(state.tables);
-        const table = tables.get(event.tableId);
-        if (table) {
-          tables.set(event.tableId, {
-            ...table,
-            potResults: event.potResults,
-          });
-          state.tables = tables;
-        }
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          potResults: event.potResults,
+        }));
         for (const pot of event.potResults) {
           for (const winner of pot.winners) {
             const name = this.getDisplayName(winner.userId);
@@ -413,15 +512,14 @@ export class GameStateService implements OnDestroy {
       }
 
       case 'hand-complete': {
-        const tables = new Map(state.tables);
-        const table = tables.get(event.tableId);
-        if (table) {
-          tables.set(event.tableId, {
-            ...table,
-            phase: 'HAND_COMPLETE',
-          });
-          state.tables = tables;
-        }
+        this.updateTable(state, event.tableId, (t) => ({
+          ...t,
+          phase: 'HAND_COMPLETE',
+          actionPosition: null,
+          actionDeadline: null,
+          callAmount: 0,
+          lastAction: null,
+        }));
         break;
       }
 
@@ -459,37 +557,59 @@ export class GameStateService implements OnDestroy {
       }
 
       case 'table-snapshot': {
-        const tables = new Map(state.tables);
         const t = event.table;
+        // seats[i] in the snapshot corresponds to seat position (i + 1).
         const seatCards = new Map<number, SeatCard[]>();
         for (let i = 0; i < t.seats.length; i++) {
+          const pos = i + 1;
           if (t.seats[i].cards) {
-            seatCards.set(i, t.seats[i].cards!);
+            seatCards.set(pos, t.seats[i].cards!);
           }
         }
-        tables.set(t.id, {
-          tableId: t.id,
+
+        // Build SeatSummary map from the Table's seats.
+        const seatSummaries = new Map<number, SeatSummary>();
+        for (let i = 0; i < t.seats.length; i++) {
+          const pos = i + 1;
+          const seat = t.seats[i];
+          if (seat.status === ('EMPTY' as SeatStatus) || !seat.player) {
+            continue;
+          }
+          seatSummaries.set(pos, {
+            seatPosition: pos,
+            userId: seat.player.user.id,
+            status: seat.isAllIn ? 'ALL_IN' : seat.status === 'FOLDED' ? 'FOLDED' : 'ACTIVE',
+            chipCount: seat.player.chipCount,
+            currentBetAmount: seat.currentBetAmount,
+          });
+        }
+
+        this.updateTable(state, t.id, (existing) => ({
+          ...existing,
+          tableStatus: t.status,
           handNumber: t.handNumber,
-          dealerPosition: t.dealerPosition ?? -1,
-          smallBlindPosition: t.smallBlindPosition ?? -1,
-          bigBlindPosition: t.bigBlindPosition ?? -1,
-          smallBlindAmount: 0,
-          bigBlindAmount: 0,
+          dealerPosition: t.dealerPosition,
+          smallBlindPosition: t.smallBlindPosition,
+          bigBlindPosition: t.bigBlindPosition,
           communityCards: t.communityCards,
-          pots: t.pots.map((p, i) => ({ potIndex: i, potAmount: p.amount })),
+          pots: t.pots,
+          potTotal: sumPots(t.pots),
           phase: t.handPhase,
           potResults: null,
           seatCards,
+          seatSummaries,
           lastAction: null,
-          actionPosition: t.actionPosition ?? null,
+          actionPosition: t.actionPosition,
+          actionDeadline: t.actionDeadline,
           currentBet: t.currentBet,
           minimumRaise: t.minimumRaise,
-        });
-        state.tables = tables;
+          callAmount: 0,
+        }));
 
         // Update player seat positions and display names from the table snapshot
         const players = new Map(state.players);
         for (let i = 0; i < t.seats.length; i++) {
+          const pos = i + 1;
           const seat = t.seats[i];
           if (seat.player) {
             const userId = seat.player.user.id;
@@ -497,7 +617,7 @@ export class GameStateService implements OnDestroy {
             this.displayNames.set(userId, displayName);
             const existing = players.get(userId);
             if (existing) {
-              players.set(userId, { ...existing, seatPosition: i, tableId: t.id });
+              players.set(userId, { ...existing, seatPosition: pos, tableId: t.id });
             }
           }
         }

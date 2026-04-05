@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PotInfo } from '../../../game/game-events';
+import { Pot } from '../../../game/game-models';
 
 export class PotDisplay extends Phaser.GameObjects.Text {
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -14,13 +14,13 @@ export class PotDisplay extends Phaser.GameObjects.Text {
     this.setOrigin(0.5, 0);
   }
 
-  updatePots(pots: PotInfo[]): void {
+  updatePots(pots: Pot[]): void {
     if (!pots || pots.length === 0) {
       this.setText('');
       return;
     }
 
-    const total = pots.reduce((sum, p) => sum + p.potAmount, 0);
+    const total = pots.reduce((sum, p) => sum + p.amount, 0);
     if (total === 0) {
       this.setText('');
       return;

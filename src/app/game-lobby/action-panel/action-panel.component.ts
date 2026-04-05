@@ -52,7 +52,7 @@ export class ActionPanelComponent implements OnChanges {
 
   get totalPot(): number {
     if (!this.tableState?.pots) return 0;
-    return this.tableState.pots.reduce((sum, p) => sum + p.potAmount, 0);
+    return this.tableState.pots.reduce((sum, p) => sum + p.amount, 0);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
