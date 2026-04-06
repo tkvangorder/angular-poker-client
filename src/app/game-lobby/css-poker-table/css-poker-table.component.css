@@ -44,9 +44,9 @@
 
 /* ── Community Area ── */
 .community-area {
-  display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 1;
 }
-.community-cards { display: flex; gap: 6px; }
+.community-cards { display: flex; gap: 8px; }
 
 /* ── Cards (shared) ── */
 .card {
@@ -93,6 +93,15 @@
   font-size: 24px;
 }
 
+/* Large community cards */
+.card-lg {
+  width: 72px; height: 100px;
+  border-radius: 7px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+.card-lg .card-rank { font-size: 22px; }
+.card-lg .card-suit { font-size: 32px; }
+
 /* Suit colors + symbols via CSS */
 .suit-heart   { color: #dc2626; }
 .suit-diamond { color: #2563eb; }
@@ -110,20 +119,33 @@
 .card-sm .card-suit { font-size: 20px; }
 
 /* ── Pot ── */
+.pot-row {
+  display: flex; align-items: center; gap: 8px;
+}
 .pot-display {
   display: flex; align-items: center; gap: 6px;
-  padding: 3px 14px; border-radius: 20px;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(218,165,32,0.2);
+  padding: 5px 16px; border-radius: 20px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(218,165,32,0.25);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.pot-chip {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #f5d678, #d4a843);
+  border: 2px solid #c49a38;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 1px 2px rgba(0,0,0,0.3);
+}
+.pot-info {
+  display: flex; flex-direction: column; gap: 0;
 }
 .pot-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
-  color: rgba(255,255,255,0.5); font-weight: 600;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,0.5); font-weight: 600; line-height: 1;
 }
 .pot-amount {
-  font-size: 14px; font-weight: 700;
-  color: #f5d678;
+  font-size: 15px; font-weight: 700;
+  color: #f5d678; line-height: 1.2;
 }
 
 /* ── Seats ── */

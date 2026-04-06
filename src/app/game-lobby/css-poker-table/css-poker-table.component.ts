@@ -100,7 +100,7 @@ export class CssPokerTableComponent implements OnChanges {
   @Input() currentUserId = '';
 
   communityCardSlots: (CardViewModel | null)[] = [];
-  potTotal = 0;
+  potViewModels: { label: string; amount: number }[] = [];
   seatViewModels: SeatViewModel[] = [];
   dealerButtonStyle: { top: string; left: string } | null = null;
 
@@ -130,8 +130,12 @@ export class CssPokerTableComponent implements OnChanges {
 
   private buildPot(): void {
     const pots = this.tableState?.pots ?? [];
-    const totalCents = pots.reduce((sum, p) => sum + p.amount, 0);
-    this.potTotal = totalCents / 100;
+    this.potViewModels = pots
+      .filter(p => p.amount > 0)
+      .map((p, i, arr) => ({
+        label: arr.length === 1 ? 'Pot' : i === 0 ? 'Main' : `Side ${i}`,
+        amount: p.amount / 100,
+      }));
   }
 
   private buildSeats(): void {

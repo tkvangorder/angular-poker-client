@@ -9,20 +9,27 @@
         <div class="community-cards">
           @for (card of communityCardSlots; track $index) {
             @if (card) {
-              <div class="card card-face" [ngClass]="card.suitClass">
+              <div class="card card-face card-lg" [ngClass]="card.suitClass">
                 <span class="card-rank">{{ card.rank }}</span>
                 <span class="card-suit"></span>
               </div>
             } @else {
-              <div class="card card-empty"></div>
+              <div class="card card-empty card-lg"></div>
             }
           }
         </div>
 
-        @if (potTotal > 0) {
-          <div class="pot-display">
-            <span class="pot-label">Pot</span>
-            <span class="pot-amount">{{ potTotal | currency }}</span>
+        @if (potViewModels.length > 0) {
+          <div class="pot-row">
+            @for (pot of potViewModels; track $index) {
+              <div class="pot-display">
+                <div class="pot-chip"></div>
+                <div class="pot-info">
+                  <span class="pot-label">{{ pot.label }}</span>
+                  <span class="pot-amount">{{ pot.amount | currency }}</span>
+                </div>
+              </div>
+            }
           </div>
         }
       </div>
