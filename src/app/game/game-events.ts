@@ -134,6 +134,7 @@ export interface HoleCardsDealtEvent {
   userId: string;
   seatPosition: number;
   cards: SeatCard[];
+  seatsWithCards: number[];
 }
 
 export interface CommunityCardsDealtEvent {

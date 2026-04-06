@@ -1,7 +1,7 @@
 import { inject, Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map, take } from 'rxjs/operators';
-import { Card } from '../poker/poker-models';
+import { Card, CardSuit, CardValue } from '../poker/poker-models';
 import { GameStatus, Pot, SeatStatus, TableStatus } from './game-models';
 import { GameWebSocketService } from './game-websocket.service';
 import { ToasterService } from '../toaster/toaster.service';
@@ -407,7 +407,18 @@ export class GameStateService implements OnDestroy {
       case 'hole-cards-dealt': {
         this.updateTable(state, event.tableId, (t) => {
           const seatCards = new Map(t.seatCards);
+          // Set the current player's actual cards
           seatCards.set(event.seatPosition, event.cards);
+          // Set face-down placeholders for all other dealt seats
+          const faceDownCards: SeatCard[] = [
+            { card: { value: CardValue.TWO, suit: CardSuit.SPADE }, showCard: false },
+            { card: { value: CardValue.TWO, suit: CardSuit.SPADE }, showCard: false },
+          ];
+          for (const pos of event.seatsWithCards ?? []) {
+            if (!seatCards.has(pos)) {
+              seatCards.set(pos, faceDownCards);
+            }
+          }
           return { ...t, seatCards };
         });
         break;

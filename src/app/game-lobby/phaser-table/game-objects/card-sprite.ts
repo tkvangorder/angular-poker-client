@@ -2,21 +2,21 @@ import Phaser from 'phaser';
 import { CardSuit, CardValue } from '../../../poker/poker-models';
 import { SeatCard } from '../../../game/game-models';
 
-const SUIT_COLORS: Record<string, number> = {
-  [CardSuit.HEARTS]: 0xb91c1c,
-  [CardSuit.DIAMONDS]: 0x2563eb,
-  [CardSuit.CLUBS]: 0x16a34a,
-  [CardSuit.SPADES]: 0x6b7280,
+const SUIT_COLORS: Record<CardSuit, number> = {
+  [CardSuit.HEART]: 0xb91c1c,
+  [CardSuit.DIAMOND]: 0x2563eb,
+  [CardSuit.CLUB]: 0x16a34a,
+  [CardSuit.SPADE]: 0x6b7280,
 };
 
-const SUIT_SYMBOLS: Record<string, string> = {
-  [CardSuit.HEARTS]: '\u2665',
-  [CardSuit.DIAMONDS]: '\u2666',
-  [CardSuit.CLUBS]: '\u2663',
-  [CardSuit.SPADES]: '\u2660',
+const SUIT_SYMBOLS: Record<CardSuit, string> = {
+  [CardSuit.HEART]: '\u2665',
+  [CardSuit.DIAMOND]: '\u2666',
+  [CardSuit.CLUB]: '\u2663',
+  [CardSuit.SPADE]: '\u2660',
 };
 
-const RANK_LABELS: Record<string, string> = {
+const RANK_LABELS: Record<CardValue, string> = {
   [CardValue.TWO]: '2',
   [CardValue.THREE]: '3',
   [CardValue.FOUR]: '4',

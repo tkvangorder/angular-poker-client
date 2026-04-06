@@ -1,27 +1,21 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule, CurrencyPipe, NgClass } from '@angular/common';
 import { TableState, PlayerState } from '../../game/game-state.service';
-import { CardSuit, CardValue } from '../../poker/poker-models';
 import { SeatCard } from '../../game/game-models';
+import { CardSuit, CardValue } from '../../poker/poker-models';
 
 const MAX_SEATS = 9;
 const MAX_COMMUNITY_CARDS = 5;
 
-const SUIT_SYMBOLS: Record<string, string> = {
-  [CardSuit.HEARTS]: '\u2665',
-  [CardSuit.DIAMONDS]: '\u2666',
-  [CardSuit.CLUBS]: '\u2663',
-  [CardSuit.SPADES]: '\u2660',
+const SUIT_CSS_CLASS: Record<CardSuit, string> = {
+  [CardSuit.HEART]: 'suit-heart',
+  [CardSuit.DIAMOND]: 'suit-diamond',
+  [CardSuit.CLUB]: 'suit-club',
+  [CardSuit.SPADE]: 'suit-spade',
 };
 
-const SUIT_COLORS: Record<string, string> = {
-  [CardSuit.HEARTS]: '#e74c3c',
-  [CardSuit.DIAMONDS]: '#3498db',
-  [CardSuit.CLUBS]: '#2ecc71',
-  [CardSuit.SPADES]: '#f1f1f1',
-};
 
-const RANK_LABELS: Record<string, string> = {
+const RANK_LABELS: Record<CardValue, string> = {
   [CardValue.TWO]: '2',
   [CardValue.THREE]: '3',
   [CardValue.FOUR]: '4',
@@ -56,9 +50,7 @@ const SEAT_POSITION_CLASSES: string[] = [
 
 interface CardViewModel {
   rank: string;
-  symbol: string;
-  color: string;
-  suitColor: string;
+  suitClass: string;
   visible: boolean;
 }
 
@@ -74,6 +66,7 @@ interface SeatViewModel {
   cards: CardViewModel[];
   isActive: boolean;
   isDealer: boolean;
+  currentBet: number;
 }
 
 /**
@@ -124,12 +117,9 @@ export class CssPokerTableComponent implements OnChanges {
     for (let i = 0; i < MAX_COMMUNITY_CARDS; i++) {
       if (i < cards.length) {
         const card = cards[i];
-        const isRed = card.suit === CardSuit.HEARTS || card.suit === CardSuit.DIAMONDS;
         this.communityCardSlots.push({
           rank: RANK_LABELS[card.value] ?? '?',
-          symbol: SUIT_SYMBOLS[card.suit] ?? '',
-          color: isRed ? '#e74c3c' : '#333',
-          suitColor: SUIT_COLORS[card.suit] ?? '#888',
+          suitClass: SUIT_CSS_CLASS[card.suit] ?? '',
           visible: true,
         });
       } else {
@@ -162,6 +152,8 @@ export class CssPokerTableComponent implements OnChanges {
       const seatCards = ts?.seatCards.get(pos) ?? null;
       const isActive = ts?.actionPosition === pos;
       const isDealer = ts?.dealerPosition === pos;
+      const summary = ts?.seatSummaries.get(pos) ?? null;
+      const currentBet = (summary?.currentBetAmount ?? 0) / 100;
 
       if (player) {
         const displayName = player.userId === this.currentUserId
@@ -175,9 +167,10 @@ export class CssPokerTableComponent implements OnChanges {
             initial: displayName.charAt(0).toUpperCase(),
             chipCount: player.chipCount / 100,
           },
-          cards: this.buildHoleCards(seatCards),
+          cards: this.buildHoleCards(seatCards, player.userId === this.currentUserId),
           isActive,
           isDealer,
+          currentBet,
         });
       } else {
         this.seatViewModels.push({
@@ -186,6 +179,7 @@ export class CssPokerTableComponent implements OnChanges {
           cards: [],
           isActive: false,
           isDealer: false,
+          currentBet: 0,
         });
       }
     }
@@ -201,21 +195,18 @@ export class CssPokerTableComponent implements OnChanges {
     }
   }
 
-  private buildHoleCards(seatCards: SeatCard[] | null): CardViewModel[] {
+  private buildHoleCards(seatCards: SeatCard[] | null, isCurrentUser: boolean): CardViewModel[] {
     if (!seatCards || seatCards.length === 0) return [];
 
     return seatCards.map(sc => {
-      if (sc.showCard) {
-        const isRed = sc.card.suit === CardSuit.HEARTS || sc.card.suit === CardSuit.DIAMONDS;
+      if (sc.showCard || isCurrentUser) {
         return {
           rank: RANK_LABELS[sc.card.value] ?? '?',
-          symbol: SUIT_SYMBOLS[sc.card.suit] ?? '',
-          color: isRed ? '#e74c3c' : '#333',
-          suitColor: SUIT_COLORS[sc.card.suit] ?? '#888',
+          suitClass: SUIT_CSS_CLASS[sc.card.suit] ?? '',
           visible: true,
         };
       }
-      return { rank: '', symbol: '', color: '', suitColor: '', visible: false };
+      return { rank: '', suitClass: '', visible: false };
     });
   }
 }

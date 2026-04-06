@@ -1,7 +1,23 @@
 import { Injectable, inject } from '@angular/core';
 import { SvgLoaderService } from '../../lib/svg-loader.service';
 import { Observable, map } from 'rxjs';
-import { CardValueString } from '../poker-models';
+import { CardSuit, CardValue } from '../poker-models';
+
+const VALUE_FILE_NAMES: Record<CardValue, string> = {
+  [CardValue.TWO]: '2',
+  [CardValue.THREE]: '3',
+  [CardValue.FOUR]: '4',
+  [CardValue.FIVE]: '5',
+  [CardValue.SIX]: '6',
+  [CardValue.SEVEN]: '7',
+  [CardValue.EIGHT]: '8',
+  [CardValue.NINE]: '9',
+  [CardValue.TEN]: '10',
+  [CardValue.JACK]: 'jack',
+  [CardValue.QUEEN]: 'queen',
+  [CardValue.KING]: 'king',
+  [CardValue.ACE]: 'ace',
+};
 
 @Injectable({
   providedIn: 'root',
@@ -10,8 +26,8 @@ export class CardService {
   private svgLoader = inject(SvgLoaderService);
 
   getCardImage(
-    cardValue: CardValueString | 'hidden' | 'blank',
-    cardSuit?: string
+    cardValue: CardValue | 'hidden' | 'blank',
+    cardSuit?: CardSuit
   ): Observable<SVGElement> {
     let card$: Observable<SVGElement>;
     if (cardValue === 'hidden') {
@@ -21,7 +37,7 @@ export class CardService {
     } else if (!cardSuit) {
       throw new Error('Card suit must be provided');
     }
-    const url = `/assets/cards/fronts/${cardSuit?.toLowerCase()}_${cardValue.toLowerCase()}.svg`;
+    const url = `/assets/cards/fronts/${cardSuit?.toLowerCase()}_${VALUE_FILE_NAMES[cardValue as CardValue]}.svg`;
     card$ = this.svgLoader.loadSvg(url);
     return card$.pipe(
       map((card) => {
@@ -32,8 +48,8 @@ export class CardService {
   }
 
   getTopCardImage(
-    cardValue: CardValueString | 'hidden' | 'blank',
-    cardSuit?: string
+    cardValue: CardValue | 'hidden' | 'blank',
+    cardSuit?: CardSuit
   ): Observable<SVGElement> {
     return this.getCardImage(cardValue, cardSuit).pipe(
       map((card) => {

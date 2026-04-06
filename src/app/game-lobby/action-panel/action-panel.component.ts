@@ -62,22 +62,22 @@ export class ActionPanelComponent implements OnChanges {
   }
 
   fold(): void {
-    this.playerAction.emit({ type: 'Fold' });
+    this.playerAction.emit({ type: 'fold' });
   }
 
   checkOrCall(): void {
     if (this.hasBetToCall) {
-      this.playerAction.emit({ type: 'Call', amount: this.callAmount });
+      this.playerAction.emit({ type: 'call', amount: this.callAmount });
     } else {
-      this.playerAction.emit({ type: 'Check' });
+      this.playerAction.emit({ type: 'check' });
     }
   }
 
   submitBet(): void {
     if (this.hasBetToCall) {
-      this.playerAction.emit({ type: 'Raise', amount: this.betAmount });
+      this.playerAction.emit({ type: 'raise', amount: this.betAmount });
     } else {
-      this.playerAction.emit({ type: 'Bet', amount: this.betAmount });
+      this.playerAction.emit({ type: 'bet', amount: this.betAmount });
     }
   }
 

@@ -6,25 +6,25 @@
 // --- Player Actions ---
 
 export interface FoldAction {
-  type: 'Fold';
+  type: 'fold';
 }
 
 export interface CheckAction {
-  type: 'Check';
+  type: 'check';
 }
 
 export interface CallAction {
-  type: 'Call';
+  type: 'call';
   amount: number;
 }
 
 export interface BetAction {
-  type: 'Bet';
+  type: 'bet';
   amount: number;
 }
 
 export interface RaiseAction {
-  type: 'Raise';
+  type: 'raise';
   amount: number;
 }
 

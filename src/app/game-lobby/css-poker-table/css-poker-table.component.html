@@ -5,56 +5,65 @@
       <div class="table-inner-line"></div>
 
       <!-- Community Cards -->
-      <div class="community-cards">
-        @for (card of communityCardSlots; track $index) {
-          @if (card) {
-            <div class="card-slot">
-              <span class="rank" [style.color]="card.color">{{ card.rank }}</span>
-              <span class="suit" [style.color]="card.suitColor">{{ card.symbol }}</span>
-            </div>
-          } @else {
-            <div class="card-slot card-placeholder"></div>
+      <div class="community-area">
+        <div class="community-cards">
+          @for (card of communityCardSlots; track $index) {
+            @if (card) {
+              <div class="card card-face" [ngClass]="card.suitClass">
+                <span class="card-rank">{{ card.rank }}</span>
+                <span class="card-suit"></span>
+              </div>
+            } @else {
+              <div class="card card-empty"></div>
+            }
           }
+        </div>
+
+        @if (potTotal > 0) {
+          <div class="pot-display">
+            <span class="pot-label">Pot</span>
+            <span class="pot-amount">{{ potTotal | currency }}</span>
+          </div>
         }
       </div>
-
-      <!-- Pot Display -->
-      @if (potTotal > 0) {
-        <div class="pot-display">Pot: {{ potTotal | currency }}</div>
-      }
     </div>
 
     <!-- Player Seats -->
     @for (seat of seatViewModels; track $index) {
       @if (seat.player) {
         <div class="seat" [ngClass]="seat.positionClass">
-          <div class="seat-avatar">{{ seat.player.initial }}</div>
-          <div class="seat-info" [class.active]="seat.isActive">
-            <div class="seat-name">{{ seat.player.displayName }}</div>
-            <div class="seat-stack">{{ seat.player.chipCount | currency }}</div>
+          @if (seat.currentBet > 0) {
+            <div class="bet-chip">{{ seat.currentBet | currency }}</div>
+          }
+
+          <div class="seat-pod" [class.seat-active]="seat.isActive">
+            <div class="seat-avatar">
+              <span class="avatar-letter">{{ seat.player.initial }}</span>
+              @if (seat.isDealer) {
+                <div class="dealer-badge">D</div>
+              }
+            </div>
+            <div class="seat-details">
+              <span class="seat-name">{{ seat.player.displayName }}</span>
+              <span class="seat-stack">{{ seat.player.chipCount | currency }}</span>
+            </div>
             @if (seat.cards.length > 0) {
-              <div class="seat-cards">
+              <div class="hole-cards">
                 @for (card of seat.cards; track $index) {
                   @if (card.visible) {
-                    <div class="hole-card hole-card-face">
-                      <span class="rank" [style.color]="card.color">{{ card.rank }}</span>
-                      <span class="mini-suit" [style.color]="card.suitColor">{{ card.symbol }}</span>
+                    <div class="card card-face card-sm" [ngClass]="card.suitClass">
+                      <span class="card-rank">{{ card.rank }}</span>
+                      <span class="card-suit"></span>
                     </div>
                   } @else {
-                    <div class="hole-card hole-card-back"></div>
+                    <div class="card card-back card-sm"></div>
                   }
                 }
               </div>
             }
           </div>
-
         </div>
       }
-    }
-
-    <!-- Dealer Button (on the rail) -->
-    @if (dealerButtonStyle) {
-      <div class="dealer-chip" [style.top]="dealerButtonStyle.top" [style.left]="dealerButtonStyle.left">D</div>
     }
   </div>
 </div>

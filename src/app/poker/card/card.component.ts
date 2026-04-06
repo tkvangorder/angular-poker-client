@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnInit, inject } from '@angular/core';
-import { CardSuitString, CardValueString } from '../poker-models';
+import { CardSuit, CardValue } from '../poker-models';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { CardService } from './card.service';
@@ -12,10 +12,10 @@ import { CardService } from './card.service';
 })
 export class CardComponent implements OnInit {
   @Input()
-  public cardValue?: CardValueString;
+  public cardValue?: CardValue;
 
   @Input()
-  public cardSuit?: CardSuitString;
+  public cardSuit?: CardSuit;
 
   @Input()
   public isHidden: boolean = false;

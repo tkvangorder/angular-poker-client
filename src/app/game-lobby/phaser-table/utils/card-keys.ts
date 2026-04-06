@@ -1,10 +1,10 @@
 import { Card, CardSuit, CardValue } from '../../../poker/poker-models';
 
 const SUIT_NAMES: Record<CardSuit, string> = {
-  [CardSuit.HEARTS]: 'hearts',
-  [CardSuit.DIAMONDS]: 'diamonds',
-  [CardSuit.CLUBS]: 'clubs',
-  [CardSuit.SPADES]: 'spades',
+  [CardSuit.HEART]: 'hearts',
+  [CardSuit.DIAMOND]: 'diamonds',
+  [CardSuit.CLUB]: 'clubs',
+  [CardSuit.SPADE]: 'spades',
 };
 
 const VALUE_NAMES: Record<CardValue, string> = {
@@ -22,6 +22,7 @@ const VALUE_NAMES: Record<CardValue, string> = {
   [CardValue.KING]: 'king',
   [CardValue.ACE]: 'ace',
 };
+
 
 export const CARD_BACK_KEY = 'card_back';
 
