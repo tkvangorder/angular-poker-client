@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phaser Table Playground</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1a1a1a;
+    --panel: #242424;
+    --border: #333;
+    --text: #e0e0e0;
+    --text-dim: #888;
+    --accent: #4a9eff;
+    --group-bg: #1e1e1e;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: 1fr auto;
+    height: 100vh;
+  }
+  .controls {
+    grid-row: 1 / 3;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 12px;
+  }
+  .controls h1 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .group {
+    background: var(--group-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .group-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 8px;
+  }
+  .group.collapsed .group-body { display: none; }
+  .control { margin-bottom: 8px; }
+  .control:last-child { margin-bottom: 0; }
+  .control label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: #aaa; margin-bottom: 3px;
+  }
+  .control label .val { color: var(--accent); font-family: monospace; }
+  .control input[type="range"] { width: 100%; }
+  .control input[type="color"] { width: 100%; height: 22px; border: none; padding: 0; background: transparent; }
+  .control select, .control input[type="number"] {
+    width: 100%; background: #2a2a2a; color: #fff; border: 1px solid #444;
+    border-radius: 3px; padding: 3px 6px; font-size: 11px;
+  }
+  .stage {
+    background: #0f0f0f;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  #game-canvas {
+    width: 100%;
+    aspect-ratio: 2.4 / 1;
+    background: #0a0a0a;
+  }
+  .readout {
+    grid-column: 2;
+    background: #1a1a1a;
+    border-top: 1px solid var(--border);
+    padding: 8px 16px;
+    font-family: monospace;
+    font-size: 10px;
+    color: #8fbc8f;
+    max-height: 110px;
+    overflow: auto;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .readout pre { flex: 1; white-space: pre-wrap; word-break: break-all; }
+  .readout button {
+    background: #2a2a2a; color: #fff; border: 1px solid #444;
+    border-radius: 3px; padding: 3px 8px; font-size: 11px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="controls">
+    <h1>Phaser Table Playground</h1>
+    <!-- control groups will be added here -->
+  </div>
+  <div class="stage">
+    <div id="game-canvas"></div>
+  </div>
+  <div class="readout">
+    <pre id="config-json">// config will render here</pre>
+    <button id="copy-btn">Copy</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+<script>
+  // ===== Config =====
+  const config = {};
+
+  // ===== Phaser scene stub =====
+  class TableScene extends Phaser.Scene {
+    constructor() { super('TableScene'); }
+    create() {
+      // nothing yet
+    }
+  }
+
+  // ===== Boot =====
+  const canvasEl = document.getElementById('game-canvas');
+  function getCanvasSize() {
+    const rect = canvasEl.getBoundingClientRect();
+    return { width: Math.round(rect.width), height: Math.round(rect.height) };
+  }
+  const size = getCanvasSize();
+  const game = new Phaser.Game({
+    type: Phaser.AUTO,
+    parent: canvasEl,
+    transparent: true,
+    width: size.width,
+    height: size.height,
+    scale: { mode: Phaser.Scale.RESIZE },
+    scene: [TableScene],
+    banner: false,
+    audio: { noAudio: true },
+  });
+
+  // ===== Rerender helper =====
+  function rerender() {
+    // will be wired per-element in later tasks
+    document.getElementById('config-json').textContent = JSON.stringify(config, null, 2);
+  }
+
+  // ===== Copy button =====
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    navigator.clipboard.writeText(JSON.stringify(config, null, 2));
+  });
+
+  rerender();
+</script>
+</body>
+</html>
