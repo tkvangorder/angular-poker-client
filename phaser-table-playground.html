@@ -244,6 +244,22 @@
           <label>Name color <span class="val" data-val="seats.nameColor"></span></label>
           <input type="color" data-path="seats.nameColor">
         </div>
+        <div class="control">
+          <label>Show empty seats</label>
+          <input type="checkbox" data-path="seats.showEmpty">
+        </div>
+        <div class="control">
+          <label>Empty color <span class="val" data-val="seats.emptyColor"></span></label>
+          <input type="color" data-path="seats.emptyColor">
+        </div>
+        <div class="control">
+          <label>Empty alpha <span class="val" data-val="seats.emptyAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="seats.emptyAlpha">
+        </div>
+        <div class="control">
+          <label>Empty size <span class="val" data-val="seats.emptySize"></span></label>
+          <input type="range" min="12" max="60" step="1" data-path="seats.emptySize">
+        </div>
       </div>
     </div>
     <div class="group" data-group="cards">
@@ -487,6 +503,10 @@
       stackSize: 10,
       nameColor: '#ffffff',
       stackColor: '#ffffff8c',
+      showEmpty: true,
+      emptyColor: '#ffffff',
+      emptyAlpha: 0.18,
+      emptySize: 28,
     },
   };
 
@@ -648,8 +668,27 @@
       this.seatContainers = [];
 
       for (let i = 0; i < MAX_SEATS; i++) {
-        if (i >= state.seatCount) continue;
         const pos = positions[i];
+
+        // Empty-slot marker for unoccupied seats
+        if (i >= state.seatCount) {
+          if (!s.showEmpty) continue;
+          const emptyContainer = this.add.container(pos.x, pos.y).setDepth(5);
+          const color = parseInt(s.emptyColor.replace('#', ''), 16);
+          const r = s.emptySize / 2;
+          const ring = this.add.graphics();
+          ring.lineStyle(1.5, color, s.emptyAlpha);
+          ring.strokeCircle(0, 0, r);
+          const plus = this.add.text(0, 0, '+', {
+            fontFamily: uiFont(),
+            fontSize: scaled(Math.round(s.emptySize * 0.6)) + 'px',
+            color: s.emptyColor, fontStyle: 'bold',
+          }).setOrigin(0.5).setAlpha(s.emptyAlpha);
+          emptyContainer.add([ring, plus]);
+          this.seatContainers.push(emptyContainer);
+          continue;
+        }
+
         const player = MOCK_PLAYERS[i];
         const container = this.add.container(pos.x, pos.y).setDepth(5);
         const isActive = (i + 1) === state.activeSeat;
