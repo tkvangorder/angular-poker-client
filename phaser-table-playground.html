@@ -218,6 +218,64 @@
         </div>
       </div>
     </div>
+    <div class="group" data-group="cards">
+      <div class="group-title">▾ Cards</div>
+      <div class="group-body">
+        <div class="control">
+          <label>Face color <span class="val" data-val="cards.faceColor"></span></label>
+          <input type="color" data-path="cards.faceColor">
+        </div>
+        <div class="control">
+          <label>Border color <span class="val" data-val="cards.borderColor"></span></label>
+          <input type="color" data-path="cards.borderColor">
+        </div>
+        <div class="control">
+          <label>Border alpha <span class="val" data-val="cards.borderAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.02" data-path="cards.borderAlpha">
+        </div>
+        <div class="control">
+          <label>Corner radius <span class="val" data-val="cards.cornerRadius"></span></label>
+          <input type="range" min="0" max="20" step="1" data-path="cards.cornerRadius">
+        </div>
+        <div class="control">
+          <label>Rank font</label>
+          <select data-path="cards.rankFont">
+            <option value="Georgia, serif">Georgia (serif)</option>
+            <option value="'Times New Roman', serif">Times</option>
+            <option value="system-ui, sans-serif">System sans</option>
+            <option value="'Courier New', monospace">Courier</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Rank size <span class="val" data-val="cards.rankSize"></span></label>
+          <input type="range" min="8" max="36" step="1" data-path="cards.rankSize">
+        </div>
+        <div class="control">
+          <label>Suit size <span class="val" data-val="cards.suitSize"></span></label>
+          <input type="range" min="8" max="48" step="1" data-path="cards.suitSize">
+        </div>
+        <div class="control">
+          <label>Community width <span class="val" data-val="cards.communityWidth"></span></label>
+          <input type="range" min="40" max="120" step="1" data-path="cards.communityWidth">
+        </div>
+        <div class="control">
+          <label>Hole width <span class="val" data-val="cards.holeWidth"></span></label>
+          <input type="range" min="20" max="80" step="1" data-path="cards.holeWidth">
+        </div>
+        <div class="control">
+          <label>Back color 1 <span class="val" data-val="cards.backColor1"></span></label>
+          <input type="color" data-path="cards.backColor1">
+        </div>
+        <div class="control">
+          <label>Back color 2 <span class="val" data-val="cards.backColor2"></span></label>
+          <input type="color" data-path="cards.backColor2">
+        </div>
+        <div class="control">
+          <label>Shadow alpha <span class="val" data-val="cards.shadowAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="cards.shadowAlpha">
+        </div>
+      </div>
+    </div>
     <div class="group" data-group="state">
       <div class="group-title">▾ Mock state</div>
       <div class="group-body">
@@ -575,6 +633,27 @@
         stack.setPosition(textX, s.nameSize / 2 + 1);
 
         container.add([bg, ...avatarNodes, name, stack]);
+
+        // Hole cards above the pod
+        const holeW = config.cards.holeWidth;
+        const holeH = Math.round(holeW * 1.4);
+        const holeGap = 4;
+        const holeY = -podH / 2 - holeH / 2 - 8;
+        const isShowdownReveal = (i + 1) === state.showdownSeat;
+        const holeRank = ['A', 'K'][i % 2] || 'A';
+        const holeSuits = [['heart', 'spade'], ['diamond', 'club']][i % 2];
+
+        for (let c = 0; c < 2; c++) {
+          const cx2 = (c === 0 ? -1 : 1) * (holeW / 2 + holeGap / 2);
+          let card;
+          if (isShowdownReveal) {
+            card = drawCardFace(this, cx2, holeY, holeW, holeH, holeRank, holeSuits[c]);
+          } else {
+            card = drawCardBack(this, cx2, holeY, holeW, holeH);
+          }
+          container.add(card);
+        }
+
         this.seatContainers.push(container);
       }
     }
@@ -734,6 +813,22 @@
       color: SUIT_COLORS[suit],
     }).setOrigin(0.5);
     container.add([shadow, bg, rankTxt, suitTxt]);
+    return container;
+  }
+
+  function drawCardBack(scene, x, y, w, h) {
+    const c = config.cards;
+    const container = scene.add.container(x, y);
+    const shadow = scene.add.graphics();
+    shadow.fillStyle(0x000000, c.shadowAlpha);
+    shadow.fillRoundedRect(-w / 2 + 1, -h / 2 + 3, w, h, c.cornerRadius);
+    const bg = scene.add.graphics();
+    bg.fillStyle(parseInt(c.backColor1.replace('#', ''), 16), 1);
+    bg.fillRoundedRect(-w / 2, -h / 2, w, h, c.cornerRadius);
+    // Subtle inner border for detail
+    bg.lineStyle(1.5, parseInt(c.backColor2.replace('#', ''), 16), 0.7);
+    bg.strokeRoundedRect(-w / 2 + 3, -h / 2 + 3, w - 6, h - 6, Math.max(1, c.cornerRadius - 2));
+    container.add([shadow, bg]);
     return container;
   }
 
