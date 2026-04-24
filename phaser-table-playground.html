@@ -355,6 +355,7 @@
       this.drawSeats();
       this.drawCommunityCards();
       this.drawPot();
+      this.drawDealerButton();
     }
 
     drawFelt() {
@@ -495,6 +496,24 @@
         const podW = s.avatarSize + s.podPadX + textW + s.podPadX * 2;
         const podH = Math.max(s.avatarSize + s.podPadY * 2, s.nameSize + s.stackSize + 10);
 
+        // Glow (behind pod) for active seat
+        if (isActive) {
+          const glow = this.add.graphics();
+          const glowPad = 8;
+          for (let g = 0; g < 4; g++) {
+            const a = s.activeGlowIntensity * (1 - g / 4) * 0.5;
+            glow.fillStyle(parseInt(s.podBorderActive.replace('#', ''), 16), a);
+            glow.fillRoundedRect(
+              -podW / 2 - glowPad * (g + 1),
+              -podH / 2 - glowPad * (g + 1),
+              podW + glowPad * 2 * (g + 1),
+              podH + glowPad * 2 * (g + 1),
+              s.podRadius + glowPad * (g + 1)
+            );
+          }
+          container.add(glow);
+        }
+
         // Background
         const bg = this.add.graphics();
         bg.fillStyle(parseInt(s.podBg.replace('#', ''), 16), s.podBgAlpha);
@@ -530,6 +549,41 @@
         container.add([bg, av, initial, name, stack]);
         this.seatContainers.push(container);
       }
+    }
+
+    drawDealerButton() {
+      const { width, height } = this.scale;
+      const { cx, cy, rx, ry } = layout(width, height);
+      const seatRx = rx * 1.22;
+      const seatRy = ry * 1.35;
+      const state = config.state;
+
+      if (this.dealerButton) this.dealerButton.destroy();
+      if (state.dealerSeat < 1 || state.dealerSeat > state.seatCount) return;
+
+      const positions = getSeatPositions(state.seatCount, cx, cy, seatRx, seatRy);
+      const seatPos = positions[state.dealerSeat - 1];
+      const dx = cx - seatPos.x;
+      const dy = cy - seatPos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist === 0) return;
+      const t = 0.3;
+      const bx = seatPos.x + dx * t;
+      const by = seatPos.y + dy * t;
+
+      const btn = this.add.container(bx, by).setDepth(4);
+      const size = 14;
+      const g = this.add.graphics();
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(0, 0, size);
+      g.lineStyle(1, 0x000000, 0.15);
+      g.strokeCircle(0, 0, size);
+      const txt = this.add.text(0, 0, 'D', {
+        fontFamily: 'system-ui, sans-serif', fontSize: '12px',
+        color: '#000000', fontStyle: 'bold',
+      }).setOrigin(0.5);
+      btn.add([g, txt]);
+      this.dealerButton = btn;
     }
 
     drawPot() {
