@@ -20,6 +20,12 @@ const EMPTY_COLOR = 0xffffff;
 const EMPTY_ALPHA = 0.18;
 const EMPTY_COLOR_STR = '#ffffff';
 
+const TIMER_COLOR = 0xf5d678;
+const TIMER_TRACK_COLOR = 0x000000;
+const TIMER_TRACK_ALPHA = 0.4;
+const TIMER_INSET_X = 6;
+const TIMER_GAP = 4;
+
 export interface SeatSizing {
   podPadX: number;
   podPadY: number;
@@ -30,6 +36,7 @@ export interface SeatSizing {
   stackSize: number;
   holeWidth: number;
   emptySize: number;
+  timerHeight: number;
 }
 
 export class SeatDisplay extends Phaser.GameObjects.Container {
@@ -47,11 +54,18 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
   private emptyRing: Phaser.GameObjects.Graphics;
   private emptyPlus: Phaser.GameObjects.Text;
 
+  private timer: Phaser.GameObjects.Graphics;
+  private timerFrac = 0;
+  private timerPodW = 0;
+  private timerPodH = 0;
+  private timerActive = false;
+
   private sizing: SeatSizing = {
     podPadX: 10, podPadY: 6, podRadius: 12,
     avatarSize: 36, avatarRingWidth: 2,
     nameSize: 11, stackSize: 10,
     holeWidth: 44, emptySize: 28,
+    timerHeight: 3,
   };
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -63,6 +77,9 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
 
     this.bg = new Phaser.GameObjects.Graphics(scene);
     this.add(this.bg);
+
+    this.timer = new Phaser.GameObjects.Graphics(scene);
+    this.add(this.timer);
 
     this.avatarBg = new Phaser.GameObjects.Graphics(scene);
     this.add(this.avatarBg);
@@ -132,6 +149,26 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     this.renderOccupied(playerName, chipCount, cards, isActive);
   }
 
+  setTimer(frac: number): void {
+    this.timerFrac = Math.max(0, Math.min(1, frac));
+    if (this.timerActive) this.redrawTimer();
+  }
+
+  private redrawTimer(): void {
+    this.timer.clear();
+    if (!this.timerActive) return;
+    const barH = this.sizing.timerHeight;
+    const fullW = this.timerPodW - TIMER_INSET_X * 2;
+    const barY = this.timerPodH / 2 + TIMER_GAP + barH / 2;
+    this.timer.fillStyle(TIMER_TRACK_COLOR, TIMER_TRACK_ALPHA);
+    this.timer.fillRoundedRect(-fullW / 2, barY - barH / 2, fullW, barH, barH / 2);
+    if (this.timerFrac > 0) {
+      const w = fullW * this.timerFrac;
+      this.timer.fillStyle(TIMER_COLOR, 1);
+      this.timer.fillRoundedRect(-fullW / 2, barY - barH / 2, w, barH, barH / 2);
+    }
+  }
+
   private renderEmpty(): void {
     this.setVisible(true);
     this.glow.clear();
@@ -143,6 +180,8 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     this.stackText.setVisible(false);
     this.card1.hide();
     this.card2.hide();
+    this.timer.clear();
+    this.timerActive = false;
     const r = this.sizing.emptySize / 2;
     this.emptyRing.clear();
     this.emptyRing.lineStyle(1.5, EMPTY_COLOR, EMPTY_ALPHA);
@@ -250,6 +289,11 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     } else {
       this.card2.hide();
     }
+
+    this.timerPodW = podW;
+    this.timerPodH = podH;
+    this.timerActive = isActive;
+    this.redrawTimer();
   }
 
   private truncateName(name: string): string {

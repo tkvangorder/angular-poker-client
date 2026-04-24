@@ -95,6 +95,7 @@ export class PokerTableScene extends Phaser.Scene {
       stackSize: Math.max(9, Math.round(width * 0.007)),
       holeWidth: Math.max(32, width * 0.031),
       emptySize: Math.max(20, width * 0.02),
+      timerHeight: Math.max(2, Math.round(width * 0.002)),
     };
 
     for (let i = 0; i < MAX_SEATS; i++) {
