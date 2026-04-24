@@ -344,6 +344,15 @@
   class TableScene extends Phaser.Scene {
     constructor() { super('TableScene'); }
 
+    preload() {
+      for (let i = 0; i < AVATAR_URLS.length; i++) {
+        this.load.image('avatar-' + i, AVATAR_URLS[i]);
+      }
+      this.load.on('loaderror', (file) => {
+        console.warn('Avatar failed to load:', file.key);
+      });
+    }
+
     create() {
       this.feltImage = null;
       this.drawAll();
@@ -525,28 +534,47 @@
         bg.lineStyle(1, borderColor, borderAlpha);
         bg.strokeRoundedRect(-podW / 2, -podH / 2, podW, podH, s.podRadius);
 
-        // Avatar placeholder (circle with initial)
+        // Avatar image (with initial-letter fallback)
         const avX = -podW / 2 + s.podPadY + s.avatarSize / 2;
-        const av = this.add.graphics();
-        av.fillStyle(0x5a4428, 1);
-        av.fillCircle(avX, 0, s.avatarSize / 2);
-        av.lineStyle(
+        const avKey = 'avatar-' + i;
+        const avatarNodes = [];
+        if (this.textures.exists(avKey)) {
+          const img = this.add.image(avX, 0, avKey);
+          const scale = s.avatarSize / img.width;
+          img.setScale(scale);
+          // Circular mask
+          const maskG = this.add.graphics();
+          maskG.fillCircle(avX, 0, s.avatarSize / 2);
+          const mask = maskG.createGeometryMask();
+          img.setMask(mask);
+          maskG.setVisible(false);
+          avatarNodes.push(img, maskG);
+        } else {
+          const av = this.add.graphics();
+          av.fillStyle(0x5a4428, 1);
+          av.fillCircle(avX, 0, s.avatarSize / 2);
+          const initial = this.add.text(avX, 0, player.name[0], {
+            fontFamily: 'system-ui, sans-serif', fontSize: Math.round(s.avatarSize * 0.4) + 'px',
+            color: '#ffffff', fontStyle: 'bold',
+          }).setOrigin(0.5);
+          avatarNodes.push(av, initial);
+        }
+        // Avatar ring (always on top of image)
+        const ring = this.add.graphics();
+        ring.lineStyle(
           s.avatarRingWidth,
           parseInt(s.avatarRingColor.replace('#', ''), 16),
           s.avatarRingAlpha
         );
-        av.strokeCircle(avX, 0, s.avatarSize / 2);
-        const initial = this.add.text(avX, 0, player.name[0], {
-          fontFamily: 'system-ui, sans-serif', fontSize: Math.round(s.avatarSize * 0.4) + 'px',
-          color: '#ffffff', fontStyle: 'bold',
-        }).setOrigin(0.5);
+        ring.strokeCircle(avX, 0, s.avatarSize / 2);
+        avatarNodes.push(ring);
 
         // Position name & stack
         const textX = avX + s.avatarSize / 2 + s.podPadX;
         name.setPosition(textX, -s.stackSize / 2 - 1);
         stack.setPosition(textX, s.nameSize / 2 + 1);
 
-        container.add([bg, av, initial, name, stack]);
+        container.add([bg, ...avatarNodes, name, stack]);
         this.seatContainers.push(container);
       }
     }
@@ -664,6 +692,18 @@
     { name: 'Max',    chips: 19000 },
     { name: 'Nia',    chips: 27000 },
     { name: 'Pat',    chips: 12000 },
+  ];
+
+  const AVATAR_URLS = [
+    'https://i.pravatar.cc/128?u=you',
+    'https://i.pravatar.cc/128?u=sam',
+    'https://i.pravatar.cc/128?u=ari',
+    'https://i.pravatar.cc/128?u=jay',
+    'https://i.pravatar.cc/128?u=kim',
+    'https://i.pravatar.cc/128?u=lee',
+    'https://i.pravatar.cc/128?u=max',
+    'https://i.pravatar.cc/128?u=nia',
+    'https://i.pravatar.cc/128?u=pat',
   ];
 
   // ===== Card drawing helpers =====
