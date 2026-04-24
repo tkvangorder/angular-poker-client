@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { TitlePageComponent } from './title-page/title-page.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { GameLobbyComponent } from './game-lobby/game-lobby.component';
-import { PhaserDevPageComponent } from './game-lobby/phaser-table/phaser-dev-page/phaser-dev-page.component';
 import { authenticationGuard, loggedInGuard } from './auth-guard.service';
 export const routes: Routes = [
   {
@@ -22,10 +21,5 @@ export const routes: Routes = [
     component: GameLobbyComponent,
     title: 'Chico Degens Poker Club - Game Lobby',
     canActivate: [authenticationGuard]
-  },
-  {
-    path: 'phaser-dev',
-    component: PhaserDevPageComponent,
-    title: 'Phaser Table Dev Harness'
   }
 ];
