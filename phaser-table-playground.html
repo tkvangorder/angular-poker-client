@@ -260,6 +260,30 @@
           <label>Empty size <span class="val" data-val="seats.emptySize"></span></label>
           <input type="range" min="12" max="60" step="1" data-path="seats.emptySize">
         </div>
+        <div class="control">
+          <label>Timer height <span class="val" data-val="seats.timerHeight"></span></label>
+          <input type="range" min="1" max="10" step="1" data-path="seats.timerHeight">
+        </div>
+        <div class="control">
+          <label>Timer color <span class="val" data-val="seats.timerColor"></span></label>
+          <input type="color" data-path="seats.timerColor">
+        </div>
+        <div class="control">
+          <label>Timer track color <span class="val" data-val="seats.timerTrackColor"></span></label>
+          <input type="color" data-path="seats.timerTrackColor">
+        </div>
+        <div class="control">
+          <label>Timer track alpha <span class="val" data-val="seats.timerTrackAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="seats.timerTrackAlpha">
+        </div>
+        <div class="control">
+          <label>Timer inset X <span class="val" data-val="seats.timerInsetX"></span></label>
+          <input type="range" min="0" max="20" step="1" data-path="seats.timerInsetX">
+        </div>
+        <div class="control">
+          <label>Timer gap <span class="val" data-val="seats.timerGap"></span></label>
+          <input type="range" min="0" max="16" step="1" data-path="seats.timerGap">
+        </div>
       </div>
     </div>
     <div class="group" data-group="cards">
@@ -414,6 +438,10 @@
           <label>Showdown seat # <span class="val" data-val="state.showdownSeat"></span></label>
           <input type="range" min="0" max="9" step="1" data-path="state.showdownSeat">
         </div>
+        <div class="control">
+          <label>Action time remaining <span class="val" data-val="state.actionTimeRemaining"></span></label>
+          <input type="range" min="0" max="1" step="0.02" data-path="state.actionTimeRemaining">
+        </div>
       </div>
     </div>
   </div>
@@ -450,6 +478,7 @@
       potAmount: 1200,         // in cents
       showdownSeat: 0,         // 0 = none, else seat # that reveals hole cards
       seatBets: [0, 500, 0, 1000, 0, 2000, 0, 0, 0], // 9 seats, cents
+      actionTimeRemaining: 0.6, // 0..1, drives the active pod's timer bar
     },
     cards: {
       faceColor: '#ffffff',
@@ -507,6 +536,12 @@
       emptyColor: '#ffffff',
       emptyAlpha: 0.18,
       emptySize: 28,
+      timerHeight: 3,
+      timerColor: '#f5d678',
+      timerTrackColor: '#000000',
+      timerTrackAlpha: 0.4,
+      timerInsetX: 6,
+      timerGap: 4,
     },
   };
 
@@ -796,6 +831,26 @@
         const card2 = cardFor(holeCenterX2, 1);
 
         container.add([bg, ...avatarNodes, name, stack, card1, card2]);
+
+        // Countdown timer bar for the active seat
+        if (isActive) {
+          const frac = Math.max(0, Math.min(1, state.actionTimeRemaining));
+          const barH = s.timerHeight;
+          const barFullW = podW - s.timerInsetX * 2;
+          const barY = podH / 2 + s.timerGap + barH / 2;
+          const timer = this.add.graphics();
+          // Track
+          timer.fillStyle(parseInt(s.timerTrackColor.replace('#', ''), 16), s.timerTrackAlpha);
+          timer.fillRoundedRect(-barFullW / 2, barY - barH / 2, barFullW, barH, barH / 2);
+          // Progress
+          if (frac > 0) {
+            const barW = barFullW * frac;
+            timer.fillStyle(parseInt(s.timerColor.replace('#', ''), 16), 1);
+            timer.fillRoundedRect(-barFullW / 2, barY - barH / 2, barW, barH, barH / 2);
+          }
+          container.add(timer);
+        }
+
         this.seatContainers.push(container);
       }
     }
