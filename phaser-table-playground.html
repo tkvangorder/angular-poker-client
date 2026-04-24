@@ -40,6 +40,33 @@
     color: #fff;
     margin-bottom: 10px;
   }
+  .controls.hidden {
+    width: 24px;
+    padding: 8px 4px;
+    overflow: hidden;
+  }
+  .controls.hidden > :not(.panel-toggle) { display: none; }
+  .panel-toggle {
+    position: absolute;
+    top: 10px; right: 8px;
+    background: #2a2a2a;
+    color: #aaa;
+    border: 1px solid #444;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .controls.hidden .panel-toggle {
+    right: 4px;
+  }
+  .layout {
+    position: relative;
+  }
+  .layout:has(.controls.hidden) {
+    grid-template-columns: 24px 1fr;
+  }
   .group {
     background: var(--group-bg);
     border: 1px solid var(--border);
@@ -104,6 +131,7 @@
 <div class="layout">
   <div class="controls">
     <h1>Phaser Table Playground</h1>
+    <button class="panel-toggle" id="panel-toggle" aria-label="Toggle panel">◀</button>
     <div class="group" data-group="felt">
       <div class="group-title">▾ Felt</div>
       <div class="group-body">
@@ -1068,6 +1096,19 @@
 
   bindControls();
   rerender();
+
+  const panel = document.querySelector('.controls');
+  const toggle = document.getElementById('panel-toggle');
+  toggle.addEventListener('click', () => {
+    panel.classList.toggle('hidden');
+    toggle.textContent = panel.classList.contains('hidden') ? '▶' : '◀';
+    // Let the grid settle, then tell Phaser to resize
+    requestAnimationFrame(() => {
+      const s = getCanvasSize();
+      game.scale.resize(s.width, s.height);
+      rerender();
+    });
+  });
 </script>
 </body>
 </html>
