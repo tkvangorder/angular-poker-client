@@ -149,6 +149,75 @@
         </div>
       </div>
     </div>
+    <div class="group" data-group="seats">
+      <div class="group-title">▾ Seats</div>
+      <div class="group-body">
+        <div class="control">
+          <label>Pod bg <span class="val" data-val="seats.podBg"></span></label>
+          <input type="color" data-path="seats.podBg">
+        </div>
+        <div class="control">
+          <label>Pod bg alpha <span class="val" data-val="seats.podBgAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="seats.podBgAlpha">
+        </div>
+        <div class="control">
+          <label>Border idle <span class="val" data-val="seats.podBorderIdle"></span></label>
+          <input type="color" data-path="seats.podBorderIdle">
+        </div>
+        <div class="control">
+          <label>Border idle alpha <span class="val" data-val="seats.podBorderIdleAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="seats.podBorderIdleAlpha">
+        </div>
+        <div class="control">
+          <label>Border active <span class="val" data-val="seats.podBorderActive"></span></label>
+          <input type="color" data-path="seats.podBorderActive">
+        </div>
+        <div class="control">
+          <label>Active glow intensity <span class="val" data-val="seats.activeGlowIntensity"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="seats.activeGlowIntensity">
+        </div>
+        <div class="control">
+          <label>Pod radius <span class="val" data-val="seats.podRadius"></span></label>
+          <input type="range" min="0" max="30" step="1" data-path="seats.podRadius">
+        </div>
+        <div class="control">
+          <label>Pod pad X <span class="val" data-val="seats.podPadX"></span></label>
+          <input type="range" min="0" max="30" step="1" data-path="seats.podPadX">
+        </div>
+        <div class="control">
+          <label>Pod pad Y <span class="val" data-val="seats.podPadY"></span></label>
+          <input type="range" min="0" max="20" step="1" data-path="seats.podPadY">
+        </div>
+        <div class="control">
+          <label>Avatar size <span class="val" data-val="seats.avatarSize"></span></label>
+          <input type="range" min="16" max="64" step="1" data-path="seats.avatarSize">
+        </div>
+        <div class="control">
+          <label>Avatar ring width <span class="val" data-val="seats.avatarRingWidth"></span></label>
+          <input type="range" min="0" max="6" step="0.5" data-path="seats.avatarRingWidth">
+        </div>
+        <div class="control">
+          <label>Avatar ring color <span class="val" data-val="seats.avatarRingColor"></span></label>
+          <input type="color" data-path="seats.avatarRingColor">
+        </div>
+        <div class="control">
+          <label>Avatar ring alpha <span class="val" data-val="seats.avatarRingAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="seats.avatarRingAlpha">
+        </div>
+        <div class="control">
+          <label>Name size <span class="val" data-val="seats.nameSize"></span></label>
+          <input type="range" min="8" max="18" step="1" data-path="seats.nameSize">
+        </div>
+        <div class="control">
+          <label>Stack size <span class="val" data-val="seats.stackSize"></span></label>
+          <input type="range" min="8" max="18" step="1" data-path="seats.stackSize">
+        </div>
+        <div class="control">
+          <label>Name color <span class="val" data-val="seats.nameColor"></span></label>
+          <input type="color" data-path="seats.nameColor">
+        </div>
+      </div>
+    </div>
     <div class="group" data-group="state">
       <div class="group-title">▾ Mock state</div>
       <div class="group-body">
@@ -239,6 +308,26 @@
       amountSize: 15,
       chipSize: 18,
     },
+    seats: {
+      podBg: '#0f0a05',
+      podBgAlpha: 0.8,
+      podBorderIdle: '#ffffff',
+      podBorderIdleAlpha: 0.08,
+      podBorderActive: '#f5d678',
+      activeGlowIntensity: 0.25,
+      podRadius: 12,
+      podPadX: 10,
+      podPadY: 6,
+      avatarSize: 36,
+      avatarRingWidth: 2,
+      avatarRingColor: '#daa520',
+      avatarRingAlpha: 0.3,
+      dealerBadgeSize: 16,
+      nameSize: 11,
+      stackSize: 10,
+      nameColor: '#ffffff',
+      stackColor: '#ffffff8c',
+    },
   };
 
   // ===== Layout helpers =====
@@ -263,6 +352,7 @@
 
     drawAll() {
       this.drawFelt();
+      this.drawSeats();
       this.drawCommunityCards();
       this.drawPot();
     }
@@ -373,6 +463,76 @@
       }
     }
 
+    drawSeats() {
+      const { width, height } = this.scale;
+      const { cx, cy, rx, ry } = layout(width, height);
+      const seatRx = rx * 1.22;
+      const seatRy = ry * 1.35;
+      const positions = getSeatPositions(cx, cy, seatRx, seatRy);
+      const s = config.seats;
+      const state = config.state;
+
+      if (this.seatContainers) this.seatContainers.forEach(c => c.destroy());
+      this.seatContainers = [];
+
+      for (let i = 0; i < MAX_SEATS; i++) {
+        if (i >= state.seatCount) continue;
+        const pos = positions[i];
+        const player = MOCK_PLAYERS[i];
+        const container = this.add.container(pos.x, pos.y).setDepth(5);
+        const isActive = (i + 1) === state.activeSeat;
+
+        // Measure text first so pod can size around it
+        const name = this.add.text(0, 0, player.name, {
+          fontFamily: 'system-ui, sans-serif', fontSize: s.nameSize + 'px',
+          color: s.nameColor, fontStyle: 'bold',
+        }).setOrigin(0, 0.5);
+        const stack = this.add.text(0, 0, '$' + (player.chips / 100).toFixed(2), {
+          fontFamily: 'system-ui, sans-serif', fontSize: s.stackSize + 'px',
+          color: s.stackColor,
+        }).setOrigin(0, 0.5);
+        const textW = Math.max(name.width, stack.width);
+
+        const podW = s.avatarSize + s.podPadX + textW + s.podPadX * 2;
+        const podH = Math.max(s.avatarSize + s.podPadY * 2, s.nameSize + s.stackSize + 10);
+
+        // Background
+        const bg = this.add.graphics();
+        bg.fillStyle(parseInt(s.podBg.replace('#', ''), 16), s.podBgAlpha);
+        bg.fillRoundedRect(-podW / 2, -podH / 2, podW, podH, s.podRadius);
+        const borderColor = isActive
+          ? parseInt(s.podBorderActive.replace('#', ''), 16)
+          : parseInt(s.podBorderIdle.replace('#', ''), 16);
+        const borderAlpha = isActive ? 1 : s.podBorderIdleAlpha;
+        bg.lineStyle(1, borderColor, borderAlpha);
+        bg.strokeRoundedRect(-podW / 2, -podH / 2, podW, podH, s.podRadius);
+
+        // Avatar placeholder (circle with initial)
+        const avX = -podW / 2 + s.podPadY + s.avatarSize / 2;
+        const av = this.add.graphics();
+        av.fillStyle(0x5a4428, 1);
+        av.fillCircle(avX, 0, s.avatarSize / 2);
+        av.lineStyle(
+          s.avatarRingWidth,
+          parseInt(s.avatarRingColor.replace('#', ''), 16),
+          s.avatarRingAlpha
+        );
+        av.strokeCircle(avX, 0, s.avatarSize / 2);
+        const initial = this.add.text(avX, 0, player.name[0], {
+          fontFamily: 'system-ui, sans-serif', fontSize: Math.round(s.avatarSize * 0.4) + 'px',
+          color: '#ffffff', fontStyle: 'bold',
+        }).setOrigin(0.5);
+
+        // Position name & stack
+        const textX = avX + s.avatarSize / 2 + s.podPadX;
+        name.setPosition(textX, -s.stackSize / 2 - 1);
+        stack.setPosition(textX, s.nameSize / 2 + 1);
+
+        container.add([bg, av, initial, name, stack]);
+        this.seatContainers.push(container);
+      }
+    }
+
     drawPot() {
       const { width, height } = this.scale;
       const { cx, cy } = layout(width, height);
@@ -422,6 +582,29 @@
       this.potContainer.add([bg, chip, label, amount]);
     }
   }
+
+  // ===== Seat layout (ported from utils/seat-layout.ts) =====
+  const SEAT_ANGLES_DEG = [90, 135, 170, 190, 225, 270, 315, 350, 10];
+  const MAX_SEATS = 9;
+  function getSeatPositions(cx, cy, rx, ry) {
+    return SEAT_ANGLES_DEG.map(deg => {
+      const rad = (deg * Math.PI) / 180;
+      return { x: cx + rx * Math.cos(rad), y: cy + ry * Math.sin(rad) };
+    });
+  }
+
+  // ===== Mock data =====
+  const MOCK_PLAYERS = [
+    { name: 'You',    chips: 24000 },
+    { name: 'Sam',    chips: 18000 },
+    { name: 'Ari',    chips: 30000 },
+    { name: 'Jay',    chips: 22000 },
+    { name: 'Kim',    chips: 42000 },
+    { name: 'Lee',    chips: 51000 },
+    { name: 'Max',    chips: 19000 },
+    { name: 'Nia',    chips: 27000 },
+    { name: 'Pat',    chips: 12000 },
+  ];
 
   // ===== Card drawing helpers =====
   const SUIT_SYMBOLS = { heart: '♥', diamond: '♦', club: '♣', spade: '♠' };
