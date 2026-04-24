@@ -110,7 +110,7 @@ export class PhaserDevPageComponent {
       { value: CardValue.KING, suit: CardSuit.SPADE },
       { value: CardValue.QUEEN, suit: CardSuit.DIAMOND },
     ],
-    pots: [{ amount: 1200, eligibleSeats: [1, 2, 3, 4, 5, 6] }],
+    pots: [{ amount: 1200, seatPositions: [1, 2, 3, 4, 5, 6] }],
     potTotal: 1200,
     phase: 'FLOP',
     potResults: null,
