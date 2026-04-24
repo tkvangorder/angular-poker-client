@@ -714,12 +714,7 @@
           const img = this.add.image(avX, 0, avKey);
           const scale = s.avatarSize / img.width;
           img.setScale(scale);
-          const maskG = this.add.graphics();
-          maskG.fillCircle(avX, 0, s.avatarSize / 2);
-          const mask = maskG.createGeometryMask();
-          img.setMask(mask);
-          maskG.setVisible(false);
-          avatarNodes.push(img, maskG);
+          avatarNodes.push(img);
         } else {
           const av = this.add.graphics();
           av.fillStyle(0x5a4428, 1);
