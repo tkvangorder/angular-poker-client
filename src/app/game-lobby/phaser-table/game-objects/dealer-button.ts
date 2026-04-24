@@ -1,5 +1,10 @@
 import Phaser from 'phaser';
 
+const FILL_COLOR = 0xffffff;
+const BORDER_COLOR = 0x000000;
+const BORDER_ALPHA = 0.15;
+const LABEL_COLOR = '#000000';
+
 export class DealerButton extends Phaser.GameObjects.Container {
   private circle: Phaser.GameObjects.Graphics;
   private label: Phaser.GameObjects.Text;
@@ -13,15 +18,15 @@ export class DealerButton extends Phaser.GameObjects.Container {
     this.add(this.circle);
 
     this.label = new Phaser.GameObjects.Text(scene, 0, 0, 'D', {
-      fontSize: '10px',
-      fontFamily: 'Arial, sans-serif',
+      fontSize: '12px',
+      fontFamily: 'system-ui, sans-serif',
       fontStyle: 'bold',
-      color: '#1e1e22',
+      color: LABEL_COLOR,
       align: 'center',
-    }).setOrigin(0.5, 0.5);
+    }).setOrigin(0.5);
     this.add(this.label);
 
-    this.drawChip();
+    this.redraw();
     this.setVisible(false);
   }
 
@@ -36,13 +41,15 @@ export class DealerButton extends Phaser.GameObjects.Container {
 
   resize(radius: number): void {
     this.radius = radius;
-    this.label.setFontSize(Math.max(7, Math.round(radius * 0.9)));
-    this.drawChip();
+    this.label.setFontSize(Math.max(8, Math.round(radius * 0.9)));
+    this.redraw();
   }
 
-  private drawChip(): void {
+  private redraw(): void {
     this.circle.clear();
-    this.circle.fillStyle(0xeeeeee, 1);
+    this.circle.fillStyle(FILL_COLOR, 1);
     this.circle.fillCircle(0, 0, this.radius);
+    this.circle.lineStyle(1, BORDER_COLOR, BORDER_ALPHA);
+    this.circle.strokeCircle(0, 0, this.radius);
   }
 }
