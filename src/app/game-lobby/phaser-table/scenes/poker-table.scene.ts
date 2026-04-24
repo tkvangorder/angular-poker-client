@@ -74,10 +74,11 @@ export class PokerTableScene extends Phaser.Scene {
   private layoutAll(width: number, height: number): void {
     this.cx = width / 2;
     this.cy = height / 2;
-    this.tableRx = width * 0.38;
-    this.tableRy = height * 0.35;
+    this.tableRx = width * 0.30;
+    this.tableRy = this.tableRx / 2.4;
 
-    this.tableFelt.draw(this.cx, this.cy, this.tableRx, this.tableRy);
+    const railWidth = Math.max(6, width * 0.01);
+    this.tableFelt.draw(this.cx, this.cy, this.tableRx, this.tableRy, railWidth);
 
     // Seats on a slightly larger ellipse
     const seatRx = this.tableRx * 1.22;
