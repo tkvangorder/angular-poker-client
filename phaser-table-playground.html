@@ -276,6 +276,47 @@
         </div>
       </div>
     </div>
+    <div class="group" data-group="chips">
+      <div class="group-title">▾ Chips / Pot</div>
+      <div class="group-body">
+        <div class="control">
+          <label>Pot pill bg alpha <span class="val" data-val="pot.pillBgAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="pot.pillBgAlpha">
+        </div>
+        <div class="control">
+          <label>Pot accent <span class="val" data-val="pot.accentColor"></span></label>
+          <input type="color" data-path="pot.accentColor">
+        </div>
+        <div class="control">
+          <label>Pot label size <span class="val" data-val="pot.labelSize"></span></label>
+          <input type="range" min="6" max="16" step="1" data-path="pot.labelSize">
+        </div>
+        <div class="control">
+          <label>Pot amount size <span class="val" data-val="pot.amountSize"></span></label>
+          <input type="range" min="10" max="26" step="1" data-path="pot.amountSize">
+        </div>
+        <div class="control">
+          <label>Pot chip size <span class="val" data-val="pot.chipSize"></span></label>
+          <input type="range" min="8" max="36" step="1" data-path="pot.chipSize">
+        </div>
+        <div class="control">
+          <label>Bet color 1 <span class="val" data-val="bets.color1"></span></label>
+          <input type="color" data-path="bets.color1">
+        </div>
+        <div class="control">
+          <label>Bet color 2 <span class="val" data-val="bets.color2"></span></label>
+          <input type="color" data-path="bets.color2">
+        </div>
+        <div class="control">
+          <label>Bet text color <span class="val" data-val="bets.textColor"></span></label>
+          <input type="color" data-path="bets.textColor">
+        </div>
+        <div class="control">
+          <label>Bet font size <span class="val" data-val="bets.fontSize"></span></label>
+          <input type="range" min="8" max="16" step="1" data-path="bets.fontSize">
+        </div>
+      </div>
+    </div>
     <div class="group" data-group="state">
       <div class="group-title">▾ Mock state</div>
       <div class="group-body">
@@ -344,6 +385,7 @@
       street: 'flop',          // preflop | flop | turn | river | showdown
       potAmount: 1200,         // in cents
       showdownSeat: 0,         // 0 = none, else seat # that reveals hole cards
+      seatBets: [0, 500, 0, 1000, 0, 2000, 0, 0, 0], // 9 seats, cents
     },
     cards: {
       faceColor: '#ffffff',
@@ -365,6 +407,14 @@
       labelSize: 9,
       amountSize: 15,
       chipSize: 18,
+    },
+    bets: {
+      color1: '#f5d678',
+      color2: '#d4a843',
+      textColor: '#1a0a00',
+      fontSize: 10,
+      padX: 8,
+      padY: 2,
     },
     seats: {
       podBg: '#0f0a05',
@@ -422,6 +472,7 @@
       this.drawSeats();
       this.drawCommunityCards();
       this.drawPot();
+      this.drawBetChips();
       this.drawDealerButton();
     }
 
@@ -655,6 +706,52 @@
         }
 
         this.seatContainers.push(container);
+      }
+    }
+
+    drawBetChips() {
+      const { width, height } = this.scale;
+      const { cx, cy, rx, ry } = layout(width, height);
+      const seatRx = rx * 1.22;
+      const seatRy = ry * 1.35;
+      const state = config.state;
+      const b = config.bets;
+
+      if (this.betChips) this.betChips.forEach(c => c.destroy());
+      this.betChips = [];
+
+      if (state.seatCount <= 0) return;
+      const positions = getSeatPositions(state.seatCount, cx, cy, seatRx, seatRy);
+
+      for (let i = 0; i < state.seatCount; i++) {
+        const amount = state.seatBets[i] || 0;
+        if (amount <= 0) continue;
+        const pos = positions[i];
+        // Offset bet chip toward the table center from the pod
+        const dx = cx - pos.x;
+        const dy = cy - pos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const t = 0.25;
+        const bx = pos.x + (dx / dist) * dist * t;
+        const by = pos.y + (dy / dist) * dist * t;
+
+        const container = this.add.container(bx, by).setDepth(4);
+        const text = '$' + (amount / 100).toFixed(2);
+        const txt = this.add.text(0, 0, text, {
+          fontFamily: 'system-ui, sans-serif', fontSize: b.fontSize + 'px',
+          color: b.textColor, fontStyle: 'bold',
+        }).setOrigin(0.5);
+        const w = txt.width + b.padX * 2;
+        const h = txt.height + b.padY * 2;
+
+        const bg = this.add.graphics();
+        bg.fillStyle(parseInt(b.color1.replace('#', ''), 16), 1);
+        bg.fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);
+        bg.lineStyle(1, parseInt(b.color2.replace('#', ''), 16), 1);
+        bg.strokeRoundedRect(-w / 2, -h / 2, w, h, h / 2);
+
+        container.add([bg, txt]);
+        this.betChips.push(container);
       }
     }
 
