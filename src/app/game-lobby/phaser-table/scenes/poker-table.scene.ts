@@ -47,13 +47,18 @@ export class PokerTableScene extends Phaser.Scene {
     this.tableFelt = new TableFelt(this);
 
     for (let i = 0; i < MAX_SEATS; i++) {
-      this.seats.push(new SeatDisplay(this, 0, 0));
-      this.betChips.push(new BetChip(this, 0, 0));
+      const seat = new SeatDisplay(this, 0, 0);
+      seat.setDepth(5);
+      this.seats.push(seat);
+      const chip = new BetChip(this, 0, 0);
+      chip.setDepth(4);
+      this.betChips.push(chip);
     }
 
-    this.communityCards = new CommunityCards(this, 0, 0);
-    this.potDisplay = new PotDisplay(this, 0, 0);
+    this.communityCards = new CommunityCards(this, 0, 0).setDepth(2);
+    this.potDisplay = new PotDisplay(this, 0, 0).setDepth(2);
     this.dealerButton = new DealerButton(this);
+    this.dealerButton.setDepth(4);
 
     this.layoutAll(this.scale.width, this.scale.height);
 
