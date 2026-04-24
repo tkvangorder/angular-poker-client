@@ -926,16 +926,22 @@
     { name: 'Pat',    chips: 12000 },
   ];
 
+  // Inline SVG data URIs — offline-safe colored avatar circles with initials.
+  // Used as placeholder avatars until production wires real images in.
+  function avatarDataUri(letter, bg) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><circle cx="64" cy="64" r="64" fill="${bg}"/><text x="64" y="64" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="central">${letter}</text></svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  }
   const AVATAR_URLS = [
-    'https://api.dicebear.com/7.x/avataaars/png?seed=you&size=128',
-    'https://api.dicebear.com/7.x/avataaars/png?seed=sam&size=128',
-    'https://api.dicebear.com/7.x/avataaars/png?seed=ari&size=128',
-    'https://api.dicebear.com/7.x/avataaars/png?seed=jay&size=128',
-    'https://api.dicebear.com/7.x/avataaars/png?seed=kim&size=128',
-    'https://api.dicebear.com/7.x/avataaars/png?seed=lee&size=128',
-    'https://api.dicebear.com/7.x/avataaars/png?seed=max&size=128',
-    'https://api.dicebear.com/7.x/avataaars/png?seed=nia&size=128',
-    'https://api.dicebear.com/7.x/avataaars/png?seed=pat&size=128',
+    avatarDataUri('Y', '#c94f4f'),
+    avatarDataUri('S', '#3b7dd8'),
+    avatarDataUri('A', '#6aa84f'),
+    avatarDataUri('J', '#a64ea6'),
+    avatarDataUri('K', '#d88c2e'),
+    avatarDataUri('L', '#2b9c9c'),
+    avatarDataUri('M', '#8e44ad'),
+    avatarDataUri('N', '#cf6b2e'),
+    avatarDataUri('P', '#4a9eff'),
   ];
 
   // ===== Card drawing helpers =====
