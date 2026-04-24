@@ -3,22 +3,12 @@ export interface SeatPosition {
   y: number;
 }
 
-// Seat angles in degrees — 0 is at the right (3 o'clock), clockwise.
-// These are arranged to place seat 0 at bottom-center (the current user's seat)
-// and distribute the rest around an ellipse.
-const SEAT_ANGLES_DEG: number[] = [
-  90,    // 0: bottom center (current user)
-  135,   // 1: bottom-left
-  170,   // 2: left-lower
-  190,   // 3: left-upper
-  225,   // 4: top-left
-  270,   // 5: top center
-  315,   // 6: top-right
-  350,   // 7: right-upper
-  10,    // 8: right-lower
-];
-
 export const MAX_SEATS = 9;
+
+// Seats are distributed evenly around the ellipse starting at 90° (bottom center,
+// where the current user sits) and stepping 40° clockwise.
+const START_DEG = 90;
+const STEP_DEG = 360 / MAX_SEATS;
 
 export function getSeatPosition(
   index: number,
@@ -27,7 +17,7 @@ export function getSeatPosition(
   rx: number,
   ry: number
 ): SeatPosition {
-  const angleDeg = SEAT_ANGLES_DEG[index % MAX_SEATS];
+  const angleDeg = START_DEG + (index % MAX_SEATS) * STEP_DEG;
   const angleRad = (angleDeg * Math.PI) / 180;
   return {
     x: cx + rx * Math.cos(angleRad),
