@@ -334,8 +334,8 @@
   function layout(width, height) {
     const cx = width / 2;
     const cy = height / 2;
-    // Felt takes ~72% of canvas width, leaving room for pods on all sides
-    const rx = width * 0.36;
+    // Felt takes ~60% of canvas width, leaving vertical room for top/bottom pods
+    const rx = width * 0.30;
     const ry = rx / 2.4;  // 2.4 : 1 aspect
     return { cx, cy, rx, ry };
   }
@@ -468,15 +468,14 @@
       const { cx, cy, rx, ry } = layout(width, height);
       const seatRx = rx * 1.22;
       const seatRy = ry * 1.35;
-      const positions = getSeatPositions(cx, cy, seatRx, seatRy);
       const s = config.seats;
       const state = config.state;
+      const positions = getSeatPositions(state.seatCount, cx, cy, seatRx, seatRy);
 
       if (this.seatContainers) this.seatContainers.forEach(c => c.destroy());
       this.seatContainers = [];
 
-      for (let i = 0; i < MAX_SEATS; i++) {
-        if (i >= state.seatCount) continue;
+      for (let i = 0; i < state.seatCount; i++) {
         const pos = positions[i];
         const player = MOCK_PLAYERS[i];
         const container = this.add.container(pos.x, pos.y).setDepth(5);
@@ -583,14 +582,21 @@
     }
   }
 
-  // ===== Seat layout (ported from utils/seat-layout.ts) =====
-  const SEAT_ANGLES_DEG = [90, 135, 170, 190, 225, 270, 315, 350, 10];
+  // ===== Seat layout =====
+  // Production (src/app/game-lobby/phaser-table/utils/seat-layout.ts) uses a fixed
+  // 9-position angle table. For the playground we distribute N seats evenly starting
+  // at 90° (bottom center) so fewer-than-9-seat layouts look balanced for design review.
   const MAX_SEATS = 9;
-  function getSeatPositions(cx, cy, rx, ry) {
-    return SEAT_ANGLES_DEG.map(deg => {
+  function getSeatPositions(count, cx, cy, rx, ry) {
+    const positions = [];
+    const startDeg = 90;
+    const stepDeg = 360 / count;
+    for (let i = 0; i < count; i++) {
+      const deg = startDeg + i * stepDeg;
       const rad = (deg * Math.PI) / 180;
-      return { x: cx + rx * Math.cos(rad), y: cy + ry * Math.sin(rad) };
-    });
+      positions.push({ x: cx + rx * Math.cos(rad), y: cy + ry * Math.sin(rad) });
+    }
+    return positions;
   }
 
   // ===== Mock data =====
