@@ -118,14 +118,132 @@
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 <script>
   // ===== Config =====
-  const config = {};
+  const config = {
+    felt: {
+      baseColor: '#145a30',
+      centerHighlight: '#1a6b3c',
+      centerAlpha: 0.9,
+      centerRadius: 0.4,        // as fraction of felt rx
+      railColor: '#3a2a14',
+      railInnerColor: '#1c1008',
+      railWidth: 14,
+      innerLineColor: '#daa520',
+      innerLineAlpha: 0.25,
+      shadowAlpha: 0.5,
+    },
+  };
 
-  // ===== Phaser scene stub =====
+  // ===== Layout helpers =====
+  function layout(width, height) {
+    const cx = width / 2;
+    const cy = height / 2;
+    // Felt takes ~72% of canvas width, leaving room for pods on all sides
+    const rx = width * 0.36;
+    const ry = rx / 2.4;  // 2.4 : 1 aspect
+    return { cx, cy, rx, ry };
+  }
+
+  // ===== Scene =====
   class TableScene extends Phaser.Scene {
     constructor() { super('TableScene'); }
+
     create() {
-      // nothing yet
+      this.feltTexture = null;
+      this.feltImage = null;
+      this.drawFelt();
+      this.scale.on('resize', () => this.drawFelt());
     }
+
+    drawFelt() {
+      const { width, height } = this.scale;
+      const { cx, cy, rx, ry } = layout(width, height);
+      const f = config.felt;
+
+      // Build an offscreen canvas 2D surface for the gradient
+      const pad = f.railWidth + 10;
+      const w = Math.round(rx * 2 + pad * 2);
+      const h = Math.round(ry * 2 + pad * 2);
+      const off = document.createElement('canvas');
+      off.width = w; off.height = h;
+      const ctx = off.getContext('2d');
+
+      // Drop shadow (soft outer glow)
+      ctx.save();
+      ctx.shadowColor = `rgba(0,0,0,${f.shadowAlpha})`;
+      ctx.shadowBlur = 40;
+      ctx.shadowOffsetY = 8;
+      ctx.fillStyle = f.baseColor;
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h / 2, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Felt gradient
+      const grad = ctx.createRadialGradient(
+        w / 2 - rx * 0.1, h / 2 - ry * 0.1, 0,
+        w / 2, h / 2, Math.max(rx, ry)
+      );
+      grad.addColorStop(0, hexWithAlpha(f.centerHighlight, f.centerAlpha));
+      grad.addColorStop(f.centerRadius, f.baseColor);
+      grad.addColorStop(1, darken(f.baseColor, 0.4));
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h / 2, rx, ry, 0, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
+
+      // Rail ring
+      ctx.save();
+      ctx.lineWidth = f.railWidth;
+      ctx.strokeStyle = f.railColor;
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h / 2, rx + f.railWidth / 2, ry + f.railWidth / 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Rail inner dark border
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = f.railInnerColor;
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h / 2, rx, ry, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Gold inner line
+      ctx.save();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = hexWithAlpha(f.innerLineColor, f.innerLineAlpha);
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h / 2, rx - 10, ry - 10, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Upload as a Phaser texture
+      if (this.textures.exists('felt')) this.textures.remove('felt');
+      this.textures.addCanvas('felt', off);
+
+      if (this.feltImage) this.feltImage.destroy();
+      this.feltImage = this.add.image(cx, cy, 'felt').setDepth(0);
+    }
+  }
+
+  // ===== Color helpers =====
+  function hexWithAlpha(hex, a) {
+    const { r, g, b } = hexToRgb(hex);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+  function hexToRgb(hex) {
+    const h = hex.replace('#', '');
+    return {
+      r: parseInt(h.substring(0, 2), 16),
+      g: parseInt(h.substring(2, 4), 16),
+      b: parseInt(h.substring(4, 6), 16),
+    };
+  }
+  function darken(hex, amount) {
+    const { r, g, b } = hexToRgb(hex);
+    const m = 1 - amount;
+    return `rgb(${Math.round(r * m)},${Math.round(g * m)},${Math.round(b * m)})`;
   }
 
   // ===== Boot =====
@@ -149,7 +267,8 @@
 
   // ===== Rerender helper =====
   function rerender() {
-    // will be wired per-element in later tasks
+    const scene = game.scene.getScene('TableScene');
+    if (scene && scene.drawFelt) scene.drawFelt();
     document.getElementById('config-json').textContent = JSON.stringify(config, null, 2);
   }
 
