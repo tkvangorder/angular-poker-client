@@ -505,11 +505,15 @@
     constructor() { super('TableScene'); }
 
     preload() {
+      this.load.crossOrigin = 'anonymous';
       for (let i = 0; i < AVATAR_URLS.length; i++) {
         this.load.image('avatar-' + i, AVATAR_URLS[i]);
       }
       this.load.on('loaderror', (file) => {
         console.warn('Avatar failed to load:', file.key);
+      });
+      this.load.on('complete', () => {
+        if (typeof rerender === 'function') rerender();
       });
     }
 
@@ -926,15 +930,15 @@
   ];
 
   const AVATAR_URLS = [
-    'https://i.pravatar.cc/128?u=you',
-    'https://i.pravatar.cc/128?u=sam',
-    'https://i.pravatar.cc/128?u=ari',
-    'https://i.pravatar.cc/128?u=jay',
-    'https://i.pravatar.cc/128?u=kim',
-    'https://i.pravatar.cc/128?u=lee',
-    'https://i.pravatar.cc/128?u=max',
-    'https://i.pravatar.cc/128?u=nia',
-    'https://i.pravatar.cc/128?u=pat',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=you&size=128',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=sam&size=128',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=ari&size=128',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=jay&size=128',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=kim&size=128',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=lee&size=128',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=max&size=128',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=nia&size=128',
+    'https://api.dicebear.com/7.x/avataaars/png?seed=pat&size=128',
   ];
 
   // ===== Card drawing helpers =====
