@@ -611,7 +611,13 @@
         }).setOrigin(0, 0.5);
         const textW = Math.max(name.width, stack.width);
 
-        const podW = s.avatarSize + s.podPadX + textW + s.podPadX * 2;
+        // Hole card sizing (cards are rendered INSIDE the pod, after the text)
+        const holeW = config.cards.holeWidth;
+        const holeH = Math.round(holeW * 1.4);
+        const holeGap = 3;
+        const holeAreaW = holeW * 2 + holeGap + s.podPadX;
+
+        const podW = s.avatarSize + s.podPadX + textW + s.podPadX + holeAreaW + s.podPadX;
         const podH = Math.max(s.avatarSize + s.podPadY * 2, s.nameSize + s.stackSize + 10);
 
         // Glow (behind pod) for active seat
@@ -651,7 +657,6 @@
           const img = this.add.image(avX, 0, avKey);
           const scale = s.avatarSize / img.width;
           img.setScale(scale);
-          // Circular mask
           const maskG = this.add.graphics();
           maskG.fillCircle(avX, 0, s.avatarSize / 2);
           const mask = maskG.createGeometryMask();
@@ -668,7 +673,6 @@
           }).setOrigin(0.5);
           avatarNodes.push(av, initial);
         }
-        // Avatar ring (always on top of image)
         const ring = this.add.graphics();
         ring.lineStyle(
           s.avatarRingWidth,
@@ -683,28 +687,23 @@
         name.setPosition(textX, -s.stackSize / 2 - 1);
         stack.setPosition(textX, s.nameSize / 2 + 1);
 
-        container.add([bg, ...avatarNodes, name, stack]);
-
-        // Hole cards above the pod
-        const holeW = config.cards.holeWidth;
-        const holeH = Math.round(holeW * 1.4);
-        const holeGap = 4;
-        const holeY = -podH / 2 - holeH / 2 - 8;
+        // Hole cards INSIDE the pod, right of the name/stack
         const isShowdownReveal = (i + 1) === state.showdownSeat;
         const holeRank = ['A', 'K'][i % 2] || 'A';
         const holeSuits = [['heart', 'spade'], ['diamond', 'club']][i % 2];
+        const holeAreaStartX = textX + textW + s.podPadX;
+        const holeCenterX1 = holeAreaStartX + holeW / 2;
+        const holeCenterX2 = holeCenterX1 + holeW + holeGap;
+        const holeCenterY = 0; // vertically centered within the pod
 
-        for (let c = 0; c < 2; c++) {
-          const cx2 = (c === 0 ? -1 : 1) * (holeW / 2 + holeGap / 2);
-          let card;
-          if (isShowdownReveal) {
-            card = drawCardFace(this, cx2, holeY, holeW, holeH, holeRank, holeSuits[c]);
-          } else {
-            card = drawCardBack(this, cx2, holeY, holeW, holeH);
-          }
-          container.add(card);
-        }
+        const cardFor = (cx2, idx) => isShowdownReveal
+          ? drawCardFace(this, cx2, holeCenterY, holeW, holeH, holeRank, holeSuits[idx])
+          : drawCardBack(this, cx2, holeCenterY, holeW, holeH);
 
+        const card1 = cardFor(holeCenterX1, 0);
+        const card2 = cardFor(holeCenterX2, 1);
+
+        container.add([bg, ...avatarNodes, name, stack, card1, card2]);
         this.seatContainers.push(container);
       }
     }
