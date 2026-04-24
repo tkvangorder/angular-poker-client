@@ -104,7 +104,51 @@
 <div class="layout">
   <div class="controls">
     <h1>Phaser Table Playground</h1>
-    <!-- control groups will be added here -->
+    <div class="group" data-group="felt">
+      <div class="group-title">▾ Felt</div>
+      <div class="group-body">
+        <div class="control">
+          <label>Base color <span class="val" data-val="felt.baseColor"></span></label>
+          <input type="color" data-path="felt.baseColor">
+        </div>
+        <div class="control">
+          <label>Center highlight <span class="val" data-val="felt.centerHighlight"></span></label>
+          <input type="color" data-path="felt.centerHighlight">
+        </div>
+        <div class="control">
+          <label>Center alpha <span class="val" data-val="felt.centerAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="felt.centerAlpha">
+        </div>
+        <div class="control">
+          <label>Center radius <span class="val" data-val="felt.centerRadius"></span></label>
+          <input type="range" min="0.1" max="1" step="0.05" data-path="felt.centerRadius">
+        </div>
+        <div class="control">
+          <label>Rail color <span class="val" data-val="felt.railColor"></span></label>
+          <input type="color" data-path="felt.railColor">
+        </div>
+        <div class="control">
+          <label>Rail inner color <span class="val" data-val="felt.railInnerColor"></span></label>
+          <input type="color" data-path="felt.railInnerColor">
+        </div>
+        <div class="control">
+          <label>Rail width <span class="val" data-val="felt.railWidth"></span></label>
+          <input type="range" min="0" max="40" step="1" data-path="felt.railWidth">
+        </div>
+        <div class="control">
+          <label>Inner line color <span class="val" data-val="felt.innerLineColor"></span></label>
+          <input type="color" data-path="felt.innerLineColor">
+        </div>
+        <div class="control">
+          <label>Inner line alpha <span class="val" data-val="felt.innerLineAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="felt.innerLineAlpha">
+        </div>
+        <div class="control">
+          <label>Shadow alpha <span class="val" data-val="felt.shadowAlpha"></span></label>
+          <input type="range" min="0" max="1" step="0.05" data-path="felt.shadowAlpha">
+        </div>
+      </div>
+    </div>
   </div>
   <div class="stage">
     <div id="game-canvas"></div>
@@ -265,10 +309,66 @@
     audio: { noAudio: true },
   });
 
+  // ===== Config path helpers =====
+  function getByPath(obj, path) {
+    return path.split('.').reduce((o, k) => (o ? o[k] : undefined), obj);
+  }
+  function setByPath(obj, path, value) {
+    const keys = path.split('.');
+    let o = obj;
+    for (let i = 0; i < keys.length - 1; i++) o = o[keys[i]];
+    o[keys[keys.length - 1]] = value;
+  }
+
+  // ===== Bind controls to config =====
+  function bindControls() {
+    document.querySelectorAll('[data-path]').forEach(input => {
+      const path = input.dataset.path;
+      const current = getByPath(config, path);
+      if (input.type === 'range' || input.type === 'number') {
+        input.value = current;
+      } else if (input.type === 'color') {
+        input.value = current;
+      } else if (input.tagName === 'SELECT') {
+        input.value = current;
+      } else if (input.type === 'checkbox') {
+        input.checked = !!current;
+      } else {
+        input.value = current;
+      }
+      input.addEventListener('input', () => {
+        let v = input.value;
+        if (input.type === 'range' || input.type === 'number') v = parseFloat(v);
+        if (input.type === 'checkbox') v = input.checked;
+        setByPath(config, path, v);
+        rerender();
+      });
+    });
+    document.querySelectorAll('[data-val]').forEach(span => {
+      // updated by rerender()
+    });
+    // Group collapse toggles
+    document.querySelectorAll('.group-title').forEach(t => {
+      t.addEventListener('click', () => {
+        const g = t.closest('.group');
+        g.classList.toggle('collapsed');
+        t.textContent = (g.classList.contains('collapsed') ? '▸ ' : '▾ ') + t.textContent.slice(2);
+      });
+    });
+  }
+
+  function updateValueReadouts() {
+    document.querySelectorAll('[data-val]').forEach(span => {
+      const v = getByPath(config, span.dataset.val);
+      span.textContent = typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(2)) : v;
+    });
+  }
+
   // ===== Rerender helper =====
   function rerender() {
     const scene = game.scene.getScene('TableScene');
     if (scene && scene.drawFelt) scene.drawFelt();
+    updateValueReadouts();
     document.getElementById('config-json').textContent = JSON.stringify(config, null, 2);
   }
 
@@ -277,6 +377,7 @@
     navigator.clipboard.writeText(JSON.stringify(config, null, 2));
   });
 
+  bindControls();
   rerender();
 </script>
 </body>
