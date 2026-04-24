@@ -620,18 +620,20 @@
         const podW = s.avatarSize + s.podPadX + textW + s.podPadX + holeAreaW + s.podPadX;
         const podH = Math.max(s.avatarSize + s.podPadY * 2, s.nameSize + s.stackSize + 10);
 
-        // Glow (behind pod) for active seat
+        // Glow (behind pod) for active seat — sized to the larger of pod and card heights
+        // so it doesn't clip where the taller hole cards stick out.
         if (isActive) {
           const glow = this.add.graphics();
           const glowPad = 8;
+          const glowH = Math.max(podH, holeH);
           for (let g = 0; g < 4; g++) {
             const a = s.activeGlowIntensity * (1 - g / 4) * 0.5;
             glow.fillStyle(parseInt(s.podBorderActive.replace('#', ''), 16), a);
             glow.fillRoundedRect(
               -podW / 2 - glowPad * (g + 1),
-              -podH / 2 - glowPad * (g + 1),
+              -glowH / 2 - glowPad * (g + 1),
               podW + glowPad * 2 * (g + 1),
-              podH + glowPad * 2 * (g + 1),
+              glowH + glowPad * 2 * (g + 1),
               s.podRadius + glowPad * (g + 1)
             );
           }
