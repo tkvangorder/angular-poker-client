@@ -85,12 +85,21 @@ export class PokerTableScene extends Phaser.Scene {
     const seatRy = this.tableRy * 1.35;
     this.seatPositions = getAllSeatPositions(this.cx, this.cy, seatRx, seatRy);
 
-    const seatWidth = Math.max(80, width * 0.09);
-    const seatHeight = Math.max(40, height * 0.08);
+    const seatSizing = {
+      podPadX: Math.max(6, width * 0.007),
+      podPadY: Math.max(4, width * 0.004),
+      podRadius: Math.max(8, width * 0.009),
+      avatarSize: Math.max(28, width * 0.026),
+      avatarRingWidth: 2,
+      nameSize: Math.max(10, Math.round(width * 0.008)),
+      stackSize: Math.max(9, Math.round(width * 0.007)),
+      holeWidth: Math.max(32, width * 0.031),
+      emptySize: Math.max(20, width * 0.02),
+    };
 
     for (let i = 0; i < MAX_SEATS; i++) {
       this.seats[i].setPosition(this.seatPositions[i].x, this.seatPositions[i].y);
-      this.seats[i].resize(seatWidth, seatHeight);
+      this.seats[i].applySizing(seatSizing);
     }
 
     // Community cards at table center

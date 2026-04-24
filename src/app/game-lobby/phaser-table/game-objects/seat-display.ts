@@ -2,58 +2,121 @@ import Phaser from 'phaser';
 import { CardSprite } from './card-sprite';
 import { SeatCard } from '../../../game/game-models';
 
-const ACTIVE_COLOR = 0x14b8a6;   // teal
-const INACTIVE_COLOR = 0x555555;
-const BG_COLOR = 0x1e1e22;
+const POD_BG = 0x0f0a05;
+const POD_BG_ALPHA = 0.8;
+const POD_BORDER_IDLE = 0xffffff;
+const POD_BORDER_IDLE_ALPHA = 0.08;
+const POD_BORDER_ACTIVE = 0xf5d678;
+const ACTIVE_GLOW_INTENSITY = 0.25;
+
+const AVATAR_BG = 0x5a4428;
+const AVATAR_RING_COLOR = 0xdaa520;
+const AVATAR_RING_ALPHA = 0.3;
+const AVATAR_INITIAL_COLOR = '#ffffff';
+const NAME_COLOR = '#ffffff';
+const STACK_COLOR = 'rgba(255,255,255,0.55)';
+
+const EMPTY_COLOR = 0xffffff;
+const EMPTY_ALPHA = 0.18;
+const EMPTY_COLOR_STR = '#ffffff';
+
+export interface SeatSizing {
+  podPadX: number;
+  podPadY: number;
+  podRadius: number;
+  avatarSize: number;
+  avatarRingWidth: number;
+  nameSize: number;
+  stackSize: number;
+  holeWidth: number;
+  emptySize: number;
+}
 
 export class SeatDisplay extends Phaser.GameObjects.Container {
-  private background: Phaser.GameObjects.Graphics;
+  private bg: Phaser.GameObjects.Graphics;
+  private glow: Phaser.GameObjects.Graphics;
+  private avatarBg: Phaser.GameObjects.Graphics;
+  private avatarRing: Phaser.GameObjects.Graphics;
+  private initialText: Phaser.GameObjects.Text;
   private nameText: Phaser.GameObjects.Text;
-  private chipText: Phaser.GameObjects.Text;
+  private stackText: Phaser.GameObjects.Text;
   private card1: CardSprite;
   private card2: CardSprite;
-  private seatWidth = 100;
-  private seatHeight = 48;
+
+  // Empty-slot visuals
+  private emptyRing: Phaser.GameObjects.Graphics;
+  private emptyPlus: Phaser.GameObjects.Text;
+
+  private sizing: SeatSizing = {
+    podPadX: 10, podPadY: 6, podRadius: 12,
+    avatarSize: 36, avatarRingWidth: 2,
+    nameSize: 11, stackSize: 10,
+    holeWidth: 44, emptySize: 28,
+  };
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
     scene.add.existing(this);
 
-    // Background pill
-    this.background = new Phaser.GameObjects.Graphics(scene);
-    this.add(this.background);
+    this.glow = new Phaser.GameObjects.Graphics(scene);
+    this.add(this.glow);
 
-    // Player name
-    this.nameText = new Phaser.GameObjects.Text(scene, 0, -6, '', {
-      fontSize: '13px',
-      fontFamily: 'Arial, sans-serif',
+    this.bg = new Phaser.GameObjects.Graphics(scene);
+    this.add(this.bg);
+
+    this.avatarBg = new Phaser.GameObjects.Graphics(scene);
+    this.add(this.avatarBg);
+
+    this.initialText = new Phaser.GameObjects.Text(scene, 0, 0, '', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '14px',
       fontStyle: 'bold',
-      color: '#cccccc',
-      align: 'center',
-    }).setOrigin(0.5, 0.5);
+      color: AVATAR_INITIAL_COLOR,
+    }).setOrigin(0.5);
+    this.add(this.initialText);
+
+    this.avatarRing = new Phaser.GameObjects.Graphics(scene);
+    this.add(this.avatarRing);
+
+    this.nameText = new Phaser.GameObjects.Text(scene, 0, 0, '', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: NAME_COLOR,
+    }).setOrigin(0, 0.5);
     this.add(this.nameText);
 
-    // Chip count
-    this.chipText = new Phaser.GameObjects.Text(scene, 0, 12, '', {
-      fontSize: '14px',
-      fontFamily: 'Arial, sans-serif',
-      fontStyle: 'bold',
-      color: '#ffffff',
-      align: 'center',
-    }).setOrigin(0.5, 0.5);
-    this.add(this.chipText);
+    this.stackText = new Phaser.GameObjects.Text(scene, 0, 0, '', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '10px',
+      color: STACK_COLOR,
+    }).setOrigin(0, 0.5);
+    this.add(this.stackText);
 
-    // Hole cards — positioned above the seat pill
-    this.card1 = new CardSprite(scene, -22, -50);
+    this.card1 = new CardSprite(scene, 0, 0);
     this.add(this.card1);
     this.card1.hide();
 
-    this.card2 = new CardSprite(scene, 22, -50);
+    this.card2 = new CardSprite(scene, 0, 0);
     this.add(this.card2);
     this.card2.hide();
 
-    this.drawBackground(false);
+    this.emptyRing = new Phaser.GameObjects.Graphics(scene);
+    this.add(this.emptyRing);
+
+    this.emptyPlus = new Phaser.GameObjects.Text(scene, 0, 0, '+', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '18px',
+      fontStyle: 'bold',
+      color: EMPTY_COLOR_STR,
+    }).setOrigin(0.5).setAlpha(EMPTY_ALPHA);
+    this.add(this.emptyPlus);
+
     this.setVisible(false);
+  }
+
+  applySizing(sizing: SeatSizing): void {
+    this.sizing = sizing;
   }
 
   updateSeat(
@@ -63,21 +126,125 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     isActive: boolean,
   ): void {
     if (!playerName) {
-      this.setVisible(false);
+      this.renderEmpty();
       return;
     }
+    this.renderOccupied(playerName, chipCount, cards, isActive);
+  }
 
+  private renderEmpty(): void {
     this.setVisible(true);
-    this.nameText.setText(this.truncateName(playerName));
-    this.chipText.setText(chipCount != null ? this.formatChips(chipCount) : '');
-    this.drawBackground(isActive);
+    this.glow.clear();
+    this.bg.clear();
+    this.avatarBg.clear();
+    this.avatarRing.clear();
+    this.initialText.setVisible(false);
+    this.nameText.setVisible(false);
+    this.stackText.setVisible(false);
+    this.card1.hide();
+    this.card2.hide();
+    const r = this.sizing.emptySize / 2;
+    this.emptyRing.clear();
+    this.emptyRing.lineStyle(1.5, EMPTY_COLOR, EMPTY_ALPHA);
+    this.emptyRing.strokeCircle(0, 0, r);
+    this.emptyPlus.setFontSize(Math.round(this.sizing.emptySize * 0.6));
+    this.emptyPlus.setVisible(true);
+  }
 
-    // Cards
+  private renderOccupied(
+    playerName: string,
+    chipCount: number | null,
+    cards: SeatCard[] | null,
+    isActive: boolean,
+  ): void {
+    this.setVisible(true);
+    this.emptyRing.clear();
+    this.emptyPlus.setVisible(false);
+
+    const s = this.sizing;
+    const nameFontSize = Math.max(10, s.nameSize);
+    const stackFontSize = Math.max(9, s.stackSize);
+
+    this.nameText.setFontSize(nameFontSize);
+    this.nameText.setText(this.truncateName(playerName));
+    this.stackText.setFontSize(stackFontSize);
+    this.stackText.setText(chipCount != null ? this.formatChips(chipCount) : '');
+
+    const textW = Math.max(this.nameText.width, this.stackText.width);
+    const holeW = s.holeWidth;
+    const holeH = Math.round(holeW * 1.4);
+    const holeGap = 3;
+    const holeAreaW = holeW * 2 + holeGap + s.podPadX;
+    const podW = s.avatarSize + s.podPadX + textW + s.podPadX + holeAreaW + s.podPadX;
+    const podH = Math.max(
+      s.avatarSize + s.podPadY * 2,
+      nameFontSize + stackFontSize + 10,
+      holeH + s.podPadY * 2
+    );
+
+    // Glow behind active pod
+    this.glow.clear();
+    if (isActive) {
+      const glowPad = 8;
+      for (let g = 0; g < 4; g++) {
+        const a = ACTIVE_GLOW_INTENSITY * (1 - g / 4) * 0.5;
+        this.glow.fillStyle(POD_BORDER_ACTIVE, a);
+        this.glow.fillRoundedRect(
+          -podW / 2 - glowPad * (g + 1),
+          -podH / 2 - glowPad * (g + 1),
+          podW + glowPad * 2 * (g + 1),
+          podH + glowPad * 2 * (g + 1),
+          s.podRadius + glowPad * (g + 1)
+        );
+      }
+    }
+
+    // Background pod
+    this.bg.clear();
+    this.bg.fillStyle(POD_BG, POD_BG_ALPHA);
+    this.bg.fillRoundedRect(-podW / 2, -podH / 2, podW, podH, s.podRadius);
+    const borderColor = isActive ? POD_BORDER_ACTIVE : POD_BORDER_IDLE;
+    const borderAlpha = isActive ? 1 : POD_BORDER_IDLE_ALPHA;
+    this.bg.lineStyle(1, borderColor, borderAlpha);
+    this.bg.strokeRoundedRect(-podW / 2, -podH / 2, podW, podH, s.podRadius);
+
+    // Avatar
+    const avX = -podW / 2 + s.podPadY + s.avatarSize / 2;
+    this.avatarBg.clear();
+    this.avatarBg.fillStyle(AVATAR_BG, 1);
+    this.avatarBg.fillCircle(avX, 0, s.avatarSize / 2);
+
+    this.initialText.setFontSize(Math.round(s.avatarSize * 0.4));
+    this.initialText.setText(playerName.charAt(0));
+    this.initialText.setPosition(avX, 0);
+    this.initialText.setVisible(true);
+
+    this.avatarRing.clear();
+    this.avatarRing.lineStyle(s.avatarRingWidth, AVATAR_RING_COLOR, AVATAR_RING_ALPHA);
+    this.avatarRing.strokeCircle(avX, 0, s.avatarSize / 2);
+
+    // Name / stack
+    const textX = avX + s.avatarSize / 2 + s.podPadX;
+    this.nameText.setPosition(textX, -stackFontSize / 2 - 1);
+    this.nameText.setVisible(true);
+    this.stackText.setPosition(textX, nameFontSize / 2 + 1);
+    this.stackText.setVisible(true);
+
+    // Hole cards inline (right side)
+    const holeStartX = textX + textW + s.podPadX;
+    const cx1 = holeStartX + holeW / 2;
+    const cx2 = cx1 + holeW + holeGap;
+
+    this.card1.setCardSize(holeW);
+    this.card1.setPosition(cx1, 0);
     if (cards && cards.length >= 1) {
       this.card1.showCard(cards[0]);
     } else {
       this.card1.hide();
     }
+
+    this.card2.setCardSize(holeW);
+    this.card2.setPosition(cx2, 0);
     if (cards && cards.length >= 2) {
       this.card2.showCard(cards[1]);
     } else {
@@ -85,45 +252,11 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     }
   }
 
-  resize(width: number, height: number): void {
-    this.seatWidth = width;
-    this.seatHeight = height;
-
-    const nameFontSize = Math.max(10, Math.round(width * 0.12));
-    this.nameText.setFontSize(nameFontSize);
-    this.nameText.setY(-height * 0.14);
-
-    const chipFontSize = Math.max(11, Math.round(width * 0.14));
-    this.chipText.setFontSize(chipFontSize);
-    this.chipText.setY(height * 0.2);
-
-    const cardWidth = Math.max(24, width * 0.32);
-    const cardGap = cardWidth * 0.6;
-    const cardY = -(height / 2) - cardWidth * 0.9;
-    this.card1.setCardSize(cardWidth);
-    this.card1.setPosition(-cardGap, cardY);
-    this.card2.setCardSize(cardWidth);
-    this.card2.setPosition(cardGap, cardY);
-  }
-
-  private drawBackground(isActive: boolean): void {
-    const w = this.seatWidth;
-    const h = this.seatHeight;
-    const r = h / 2;
-
-    this.background.clear();
-    this.background.fillStyle(BG_COLOR, 0.9);
-    this.background.fillRoundedRect(-w / 2, -h / 2, w, h, r);
-    this.background.lineStyle(2, isActive ? ACTIVE_COLOR : INACTIVE_COLOR, isActive ? 1 : 0.6);
-    this.background.strokeRoundedRect(-w / 2, -h / 2, w, h, r);
-  }
-
   private truncateName(name: string): string {
     return name.length > 10 ? name.substring(0, 9) + '\u2026' : name;
   }
 
   private formatChips(cents: number): string {
-    const dollars = cents / 100;
-    return dollars.toFixed(2);
+    return '$' + (cents / 100).toFixed(2);
   }
 }
