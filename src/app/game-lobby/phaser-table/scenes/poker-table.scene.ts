@@ -7,12 +7,14 @@ import { SeatDisplay } from '../game-objects/seat-display';
 import { CommunityCards } from '../game-objects/community-cards';
 import { PotDisplay } from '../game-objects/pot-display';
 import { DealerButton } from '../game-objects/dealer-button';
+import { BetChip } from '../game-objects/bet-chip';
 import { getAllSeatPositions, MAX_SEATS, SeatPosition } from '../utils/seat-layout';
 
 export class PokerTableScene extends Phaser.Scene {
   private bridge!: PhaserBridgeService;
   private tableFelt!: TableFelt;
   private seats: SeatDisplay[] = [];
+  private betChips: BetChip[] = [];
   private communityCards!: CommunityCards;
   private potDisplay!: PotDisplay;
   private dealerButton!: DealerButton;
@@ -29,6 +31,10 @@ export class PokerTableScene extends Phaser.Scene {
   private tableRy = 0;
   private seatPositions: SeatPosition[] = [];
 
+  // Timer tracking
+  private timerDeadlineMs: number | null = null;
+  private timerTotalMs = 30000;
+
   constructor() {
     super({ key: 'PokerTableScene' });
   }
@@ -42,6 +48,7 @@ export class PokerTableScene extends Phaser.Scene {
 
     for (let i = 0; i < MAX_SEATS; i++) {
       this.seats.push(new SeatDisplay(this, 0, 0));
+      this.betChips.push(new BetChip(this, 0, 0));
     }
 
     this.communityCards = new CommunityCards(this, 0, 0);
@@ -57,8 +64,7 @@ export class PokerTableScene extends Phaser.Scene {
 
     this.subscriptions.push(
       this.bridge.tableState$.subscribe((state) => {
-        this.currentTableState = state;
-        this.renderState();
+        this.handleTableStateChange(state);
       }),
       this.bridge.players$.subscribe((players) => {
         this.currentPlayers = players;
@@ -71,6 +77,37 @@ export class PokerTableScene extends Phaser.Scene {
     );
   }
 
+  override update(): void {
+    if (this.timerDeadlineMs == null) return;
+    const remainingMs = Math.max(0, this.timerDeadlineMs - Date.now());
+    const frac = this.timerTotalMs > 0 ? remainingMs / this.timerTotalMs : 0;
+    const pos = this.currentTableState?.actionPosition;
+    if (pos != null && pos >= 1 && pos <= MAX_SEATS) {
+      this.seats[pos - 1].setTimer(frac);
+    }
+  }
+
+  private handleTableStateChange(state: TableState | null): void {
+    this.currentTableState = state;
+
+    if (state?.actionDeadline) {
+      const deadlineMs = Date.parse(state.actionDeadline);
+      if (deadlineMs > Date.now()) {
+        const justObserved = deadlineMs - Date.now();
+        if (this.timerDeadlineMs !== deadlineMs) {
+          this.timerTotalMs = Math.max(1000, justObserved);
+        }
+        this.timerDeadlineMs = deadlineMs;
+      } else {
+        this.timerDeadlineMs = null;
+      }
+    } else {
+      this.timerDeadlineMs = null;
+    }
+
+    this.renderState();
+  }
+
   private layoutAll(width: number, height: number): void {
     this.cx = width / 2;
     this.cy = height / 2;
@@ -80,7 +117,6 @@ export class PokerTableScene extends Phaser.Scene {
     const railWidth = Math.max(6, width * 0.01);
     this.tableFelt.draw(this.cx, this.cy, this.tableRx, this.tableRy, railWidth);
 
-    // Seats on a slightly larger ellipse
     const seatRx = this.tableRx * 1.22;
     const seatRy = this.tableRy * 1.35;
     this.seatPositions = getAllSeatPositions(this.cx, this.cy, seatRx, seatRy);
@@ -98,25 +134,32 @@ export class PokerTableScene extends Phaser.Scene {
       timerHeight: Math.max(2, Math.round(width * 0.002)),
     };
 
+    const betFontSize = Math.max(9, Math.round(width * 0.008));
+
     for (let i = 0; i < MAX_SEATS; i++) {
       this.seats[i].setPosition(this.seatPositions[i].x, this.seatPositions[i].y);
       this.seats[i].applySizing(seatSizing);
+      const dx = this.cx - this.seatPositions[i].x;
+      const dy = this.cy - this.seatPositions[i].y;
+      const t = 0.25;
+      this.betChips[i].setPosition(
+        this.seatPositions[i].x + dx * t,
+        this.seatPositions[i].y + dy * t
+      );
+      this.betChips[i].resize(betFontSize);
     }
 
-    // Community cards at table center
-    const cardWidth = Math.max(36, width * 0.05);
-    this.communityCards.setPosition(this.cx, this.cy);
-    this.communityCards.resize(cardWidth);
+    const communityCardWidth = Math.max(36, width * 0.051);
+    this.communityCards.setPosition(this.cx, this.cy - communityCardWidth * 0.15);
+    this.communityCards.resize(communityCardWidth);
 
-    // Pot below community cards
-    this.potDisplay.setPosition(this.cx, this.cy + cardWidth * 1.0);
+    this.potDisplay.setPosition(this.cx, this.cy + communityCardWidth * 0.85);
     const chipSize = Math.max(10, width * 0.013);
     const labelSize = Math.max(8, Math.round(width * 0.007));
     const amountSize = Math.max(13, Math.round(width * 0.011));
     this.potDisplay.resize(chipSize, labelSize, amountSize);
 
-    // Dealer button — keep it small
-    this.dealerButton.resize(Math.max(6, width * 0.007));
+    this.dealerButton.resize(Math.max(8, width * 0.008));
   }
 
   private renderState(): void {
@@ -124,24 +167,19 @@ export class PokerTableScene extends Phaser.Scene {
     const players = this.currentPlayers;
 
     if (!ts) {
-      for (const seat of this.seats) {
-        seat.setVisible(false);
-      }
+      for (const seat of this.seats) seat.updateSeat(null, null, null, false);
+      for (const chip of this.betChips) chip.setAmount(0);
       this.communityCards.updateCards([]);
       this.potDisplay.updatePots([]);
       this.dealerButton.hide();
       return;
     }
 
-    // Build seatPosition → PlayerState map (seat positions are 1-indexed)
     const seatPlayerMap = new Map<number, PlayerState>();
     for (const p of players) {
-      if (p.seatPosition != null) {
-        seatPlayerMap.set(p.seatPosition, p);
-      }
+      if (p.seatPosition != null) seatPlayerMap.set(p.seatPosition, p);
     }
 
-    // Update seats (seat positions are 1..MAX_SEATS)
     for (let pos = 1; pos <= MAX_SEATS; pos++) {
       const idx = pos - 1;
       const player = seatPlayerMap.get(pos);
@@ -149,34 +187,27 @@ export class PokerTableScene extends Phaser.Scene {
       const isActive = ts.actionPosition === pos;
 
       if (player) {
-        const name = player.userId === this.currentUserId
-          ? 'You'
-          : player.displayName;
+        const name = player.userId === this.currentUserId ? 'You' : player.displayName;
         this.seats[idx].updateSeat(name, player.chipCount, cards, isActive);
       } else {
         this.seats[idx].updateSeat(null, null, null, false);
       }
+
+      const summary = ts.seatSummaries.get(pos);
+      this.betChips[idx].setAmount(summary?.currentBetAmount ?? 0);
     }
 
-    // Community cards
     this.communityCards.updateCards(ts.communityCards);
-
-    // Pots
     this.potDisplay.updatePots(ts.pots);
 
-    // Dealer button — on the table felt, between seat and center
     if (ts.dealerPosition != null && ts.dealerPosition >= 1 && ts.dealerPosition <= MAX_SEATS) {
       const seatPos = this.seatPositions[ts.dealerPosition - 1];
       const dx = this.cx - seatPos.x;
       const dy = this.cy - seatPos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > 0) {
-        // Place just inside the felt edge, near the seat
         const t = 0.3;
-        this.dealerButton.show(
-          seatPos.x + dx * t,
-          seatPos.y + dy * t
-        );
+        this.dealerButton.show(seatPos.x + dx * t, seatPos.y + dy * t);
       }
     } else {
       this.dealerButton.hide();
@@ -184,9 +215,7 @@ export class PokerTableScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    for (const sub of this.subscriptions) {
-      sub.unsubscribe();
-    }
+    for (const sub of this.subscriptions) sub.unsubscribe();
     this.subscriptions = [];
   }
 }
