@@ -99,9 +99,11 @@ export class PokerTableScene extends Phaser.Scene {
     this.communityCards.resize(cardWidth);
 
     // Pot below community cards
-    const potFontSize = Math.max(11, Math.round(width * 0.014));
     this.potDisplay.setPosition(this.cx, this.cy + cardWidth * 1.0);
-    this.potDisplay.setFontSize(potFontSize);
+    const chipSize = Math.max(10, width * 0.013);
+    const labelSize = Math.max(8, Math.round(width * 0.007));
+    const amountSize = Math.max(13, Math.round(width * 0.011));
+    this.potDisplay.resize(chipSize, labelSize, amountSize);
 
     // Dealer button — keep it small
     this.dealerButton.resize(Math.max(6, width * 0.007));
