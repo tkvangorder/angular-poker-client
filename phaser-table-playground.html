@@ -149,6 +149,41 @@
         </div>
       </div>
     </div>
+    <div class="group" data-group="state">
+      <div class="group-title">▾ Mock state</div>
+      <div class="group-body">
+        <div class="control">
+          <label>Seat count <span class="val" data-val="state.seatCount"></span></label>
+          <input type="range" min="1" max="9" step="1" data-path="state.seatCount">
+        </div>
+        <div class="control">
+          <label>Active seat # <span class="val" data-val="state.activeSeat"></span></label>
+          <input type="range" min="0" max="9" step="1" data-path="state.activeSeat">
+        </div>
+        <div class="control">
+          <label>Dealer seat # <span class="val" data-val="state.dealerSeat"></span></label>
+          <input type="range" min="0" max="9" step="1" data-path="state.dealerSeat">
+        </div>
+        <div class="control">
+          <label>Street</label>
+          <select data-path="state.street">
+            <option value="preflop">Preflop</option>
+            <option value="flop">Flop</option>
+            <option value="turn">Turn</option>
+            <option value="river">River</option>
+            <option value="showdown">Showdown</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Pot amount (cents) <span class="val" data-val="state.potAmount"></span></label>
+          <input type="range" min="0" max="100000" step="50" data-path="state.potAmount">
+        </div>
+        <div class="control">
+          <label>Showdown seat # <span class="val" data-val="state.showdownSeat"></span></label>
+          <input type="range" min="0" max="9" step="1" data-path="state.showdownSeat">
+        </div>
+      </div>
+    </div>
   </div>
   <div class="stage">
     <div id="game-canvas"></div>
@@ -175,6 +210,35 @@
       innerLineAlpha: 0.25,
       shadowAlpha: 0.5,
     },
+    state: {
+      seatCount: 6,            // number of occupied seats, 1..9
+      activeSeat: 3,           // 1..9, or 0 for none
+      dealerSeat: 1,
+      street: 'flop',          // preflop | flop | turn | river | showdown
+      potAmount: 1200,         // in cents
+      showdownSeat: 0,         // 0 = none, else seat # that reveals hole cards
+    },
+    cards: {
+      faceColor: '#ffffff',
+      borderColor: '#000000',
+      borderAlpha: 0.12,
+      cornerRadius: 5,
+      rankFont: 'Georgia, serif',
+      rankSize: 22,
+      suitSize: 32,
+      communityWidth: 72,
+      holeWidth: 44,
+      backColor1: '#1a5c8a',
+      backColor2: '#0e3d5e',
+      shadowAlpha: 0.4,
+    },
+    pot: {
+      pillBgAlpha: 0.5,
+      accentColor: '#f5d678',
+      labelSize: 9,
+      amountSize: 15,
+      chipSize: 18,
+    },
   };
 
   // ===== Layout helpers =====
@@ -192,10 +256,15 @@
     constructor() { super('TableScene'); }
 
     create() {
-      this.feltTexture = null;
       this.feltImage = null;
+      this.drawAll();
+      this.scale.on('resize', () => this.drawAll());
+    }
+
+    drawAll() {
       this.drawFelt();
-      this.scale.on('resize', () => this.drawFelt());
+      this.drawCommunityCards();
+      this.drawPot();
     }
 
     drawFelt() {
@@ -269,6 +338,120 @@
       if (this.feltImage) this.feltImage.destroy();
       this.feltImage = this.add.image(cx, cy, 'felt').setDepth(0);
     }
+
+    drawCommunityCards() {
+      const { width, height } = this.scale;
+      const { cx, cy } = layout(width, height);
+      const c = config.cards;
+      const s = config.state;
+      const cardCount = {
+        preflop: 0, flop: 3, turn: 4, river: 5, showdown: 5,
+      }[s.street] || 0;
+
+      if (this.communityContainer) this.communityContainer.destroy();
+      this.communityContainer = this.add.container(cx, cy - c.communityWidth * 0.15).setDepth(2);
+
+      const rankLabels = ['A', 'K', 'Q', 'J', '10'];
+      const suits = ['heart', 'spade', 'diamond', 'club', 'spade'];
+      const w = c.communityWidth;
+      const h = Math.round(w * 1.4);
+      const gap = 8;
+      const totalW = 5 * w + 4 * gap;
+      const startX = -totalW / 2 + w / 2;
+
+      for (let i = 0; i < 5; i++) {
+        const x = startX + i * (w + gap);
+        if (i < cardCount) {
+          const card = drawCardFace(this, x, 0, w, h, rankLabels[i], suits[i]);
+          this.communityContainer.add(card);
+        } else {
+          const placeholder = this.add.graphics();
+          placeholder.lineStyle(1.5, 0xffffff, 0.12);
+          placeholder.strokeRoundedRect(x - w / 2, -h / 2, w, h, c.cornerRadius);
+          this.communityContainer.add(placeholder);
+        }
+      }
+    }
+
+    drawPot() {
+      const { width, height } = this.scale;
+      const { cx, cy } = layout(width, height);
+      const p = config.pot;
+      const c = config.cards;
+      const s = config.state;
+
+      if (this.potContainer) this.potContainer.destroy();
+      if (s.potAmount <= 0) return;
+
+      const y = cy + c.communityWidth * 0.85;
+      this.potContainer = this.add.container(cx, y).setDepth(2);
+
+      const chipSize = p.chipSize;
+      const pad = 10;
+      const labelText = 'POT';
+      const amountText = '$' + (s.potAmount / 100).toFixed(2);
+      const label = this.add.text(0, 0, labelText, {
+        fontFamily: 'system-ui, sans-serif', fontSize: p.labelSize + 'px',
+        color: 'rgba(255,255,255,0.5)', fontStyle: 'bold',
+      }).setOrigin(0, 0.5);
+      const amount = this.add.text(0, 0, amountText, {
+        fontFamily: 'system-ui, sans-serif', fontSize: p.amountSize + 'px',
+        color: p.accentColor, fontStyle: 'bold',
+      }).setOrigin(0, 0.5);
+
+      const textW = Math.max(label.width, amount.width);
+      const pillW = chipSize + pad + textW + pad * 2;
+      const pillH = Math.max(chipSize + 8, p.amountSize + p.labelSize + 4);
+
+      const bg = this.add.graphics();
+      bg.fillStyle(0x000000, p.pillBgAlpha);
+      bg.fillRoundedRect(-pillW / 2, -pillH / 2, pillW, pillH, pillH / 2);
+      bg.lineStyle(1, parseInt(p.accentColor.replace('#', ''), 16), 0.25);
+      bg.strokeRoundedRect(-pillW / 2, -pillH / 2, pillW, pillH, pillH / 2);
+
+      const chip = this.add.graphics();
+      const chipX = -pillW / 2 + pad + chipSize / 2;
+      chip.fillStyle(parseInt(p.accentColor.replace('#', ''), 16), 1);
+      chip.fillCircle(chipX, 0, chipSize / 2);
+      chip.lineStyle(2, 0xc49a38, 1);
+      chip.strokeCircle(chipX, 0, chipSize / 2);
+
+      label.setPosition(chipX + chipSize / 2 + pad, -p.amountSize / 2 + 1);
+      amount.setPosition(chipX + chipSize / 2 + pad, p.labelSize / 2 + 2);
+
+      this.potContainer.add([bg, chip, label, amount]);
+    }
+  }
+
+  // ===== Card drawing helpers =====
+  const SUIT_SYMBOLS = { heart: '♥', diamond: '♦', club: '♣', spade: '♠' };
+  const SUIT_COLORS = { heart: '#dc2626', diamond: '#2563eb', club: '#15803d', spade: '#1e293b' };
+
+  function drawCardFace(scene, x, y, w, h, rank, suit) {
+    const c = config.cards;
+    const container = scene.add.container(x, y);
+    // Shadow
+    const shadow = scene.add.graphics();
+    shadow.fillStyle(0x000000, c.shadowAlpha);
+    shadow.fillRoundedRect(-w / 2 + 1, -h / 2 + 3, w, h, c.cornerRadius);
+    // Face
+    const bg = scene.add.graphics();
+    bg.fillStyle(parseInt(c.faceColor.replace('#', ''), 16), 1);
+    bg.fillRoundedRect(-w / 2, -h / 2, w, h, c.cornerRadius);
+    bg.lineStyle(1, parseInt(c.borderColor.replace('#', ''), 16), c.borderAlpha);
+    bg.strokeRoundedRect(-w / 2, -h / 2, w, h, c.cornerRadius);
+    // Rank
+    const rankTxt = scene.add.text(0, -h * 0.12, rank, {
+      fontFamily: c.rankFont, fontSize: c.rankSize + 'px',
+      color: SUIT_COLORS[suit], fontStyle: 'bold',
+    }).setOrigin(0.5);
+    // Suit
+    const suitTxt = scene.add.text(0, h * 0.18, SUIT_SYMBOLS[suit], {
+      fontFamily: c.rankFont, fontSize: c.suitSize + 'px',
+      color: SUIT_COLORS[suit],
+    }).setOrigin(0.5);
+    container.add([shadow, bg, rankTxt, suitTxt]);
+    return container;
   }
 
   // ===== Color helpers =====
@@ -367,7 +550,7 @@
   // ===== Rerender helper =====
   function rerender() {
     const scene = game.scene.getScene('TableScene');
-    if (scene && scene.drawFelt) scene.drawFelt();
+    if (scene && scene.drawAll) scene.drawAll();
     updateValueReadouts();
     document.getElementById('config-json').textContent = JSON.stringify(config, null, 2);
   }
