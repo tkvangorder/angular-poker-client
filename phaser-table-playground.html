@@ -512,9 +512,6 @@
       this.load.on('loaderror', (file) => {
         console.warn('Avatar failed to load:', file.key);
       });
-      this.load.on('complete', () => {
-        if (typeof rerender === 'function') rerender();
-      });
     }
 
     create() {
