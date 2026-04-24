@@ -642,12 +642,13 @@
       const seatRy = ry * 1.35;
       const s = config.seats;
       const state = config.state;
-      const positions = getSeatPositions(state.seatCount, cx, cy, seatRx, seatRy);
+      const positions = getSeatPositions(cx, cy, seatRx, seatRy);
 
       if (this.seatContainers) this.seatContainers.forEach(c => c.destroy());
       this.seatContainers = [];
 
-      for (let i = 0; i < state.seatCount; i++) {
+      for (let i = 0; i < MAX_SEATS; i++) {
+        if (i >= state.seatCount) continue;
         const pos = positions[i];
         const player = MOCK_PLAYERS[i];
         const container = this.add.container(pos.x, pos.y).setDepth(5);
@@ -772,7 +773,7 @@
       this.betChips = [];
 
       if (state.seatCount <= 0) return;
-      const positions = getSeatPositions(state.seatCount, cx, cy, seatRx, seatRy);
+      const positions = getSeatPositions(cx, cy, seatRx, seatRy);
 
       for (let i = 0; i < state.seatCount; i++) {
         const amount = state.seatBets[i] || 0;
@@ -816,7 +817,7 @@
       if (this.dealerButton) this.dealerButton.destroy();
       if (state.dealerSeat < 1 || state.dealerSeat > state.seatCount) return;
 
-      const positions = getSeatPositions(state.seatCount, cx, cy, seatRx, seatRy);
+      const positions = getSeatPositions(cx, cy, seatRx, seatRy);
       const seatPos = positions[state.dealerSeat - 1];
       const dx = cx - seatPos.x;
       const dy = cy - seatPos.y;
@@ -892,15 +893,14 @@
   }
 
   // ===== Seat layout =====
-  // Production (src/app/game-lobby/phaser-table/utils/seat-layout.ts) uses a fixed
-  // 9-position angle table. For the playground we distribute N seats evenly starting
-  // at 90° (bottom center) so fewer-than-9-seat layouts look balanced for design review.
+  // Always lay out 9 seat slots evenly around the ellipse, starting at 90° (bottom).
+  // seatCount controls how many are occupied; empty slots render nothing.
   const MAX_SEATS = 9;
-  function getSeatPositions(count, cx, cy, rx, ry) {
+  function getSeatPositions(cx, cy, rx, ry) {
     const positions = [];
     const startDeg = 90;
-    const stepDeg = 360 / count;
-    for (let i = 0; i < count; i++) {
+    const stepDeg = 360 / MAX_SEATS;
+    for (let i = 0; i < MAX_SEATS; i++) {
       const deg = startDeg + i * stepDeg;
       const rad = (deg * Math.PI) / 180;
       positions.push({ x: cx + rx * Math.cos(rad), y: cy + ry * Math.sin(rad) });
