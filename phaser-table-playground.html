@@ -317,6 +317,26 @@
         </div>
       </div>
     </div>
+    <div class="group" data-group="typography">
+      <div class="group-title">▾ Typography</div>
+      <div class="group-body">
+        <div class="control">
+          <label>UI font</label>
+          <select data-path="typography.uiFont">
+            <option value="system-ui, sans-serif">System</option>
+            <option value="-apple-system, BlinkMacSystemFont, sans-serif">Apple</option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'Helvetica Neue', sans-serif">Helvetica</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="Georgia, serif">Georgia</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Scale <span class="val" data-val="typography.scale"></span></label>
+          <input type="range" min="0.7" max="1.5" step="0.05" data-path="typography.scale">
+        </div>
+      </div>
+    </div>
     <div class="group" data-group="state">
       <div class="group-title">▾ Mock state</div>
       <div class="group-body">
@@ -415,6 +435,10 @@
       fontSize: 10,
       padX: 8,
       padY: 2,
+    },
+    typography: {
+      uiFont: 'system-ui, sans-serif',
+      scale: 1.0,  // global multiplier applied to all font sizes
     },
     seats: {
       podBg: '#0f0a05',
@@ -602,11 +626,11 @@
 
         // Measure text first so pod can size around it
         const name = this.add.text(0, 0, player.name, {
-          fontFamily: 'system-ui, sans-serif', fontSize: s.nameSize + 'px',
+          fontFamily: uiFont(), fontSize: scaled(s.nameSize) + 'px',
           color: s.nameColor, fontStyle: 'bold',
         }).setOrigin(0, 0.5);
         const stack = this.add.text(0, 0, '$' + (player.chips / 100).toFixed(2), {
-          fontFamily: 'system-ui, sans-serif', fontSize: s.stackSize + 'px',
+          fontFamily: uiFont(), fontSize: scaled(s.stackSize) + 'px',
           color: s.stackColor,
         }).setOrigin(0, 0.5);
         const textW = Math.max(name.width, stack.width);
@@ -672,7 +696,7 @@
           av.fillStyle(0x5a4428, 1);
           av.fillCircle(avX, 0, s.avatarSize / 2);
           const initial = this.add.text(avX, 0, player.name[0], {
-            fontFamily: 'system-ui, sans-serif', fontSize: Math.round(s.avatarSize * 0.4) + 'px',
+            fontFamily: uiFont(), fontSize: scaled(Math.round(s.avatarSize * 0.4)) + 'px',
             color: '#ffffff', fontStyle: 'bold',
           }).setOrigin(0.5);
           avatarNodes.push(av, initial);
@@ -741,7 +765,7 @@
         const container = this.add.container(bx, by).setDepth(4);
         const text = '$' + (amount / 100).toFixed(2);
         const txt = this.add.text(0, 0, text, {
-          fontFamily: 'system-ui, sans-serif', fontSize: b.fontSize + 'px',
+          fontFamily: uiFont(), fontSize: scaled(b.fontSize) + 'px',
           color: b.textColor, fontStyle: 'bold',
         }).setOrigin(0.5);
         const w = txt.width + b.padX * 2;
@@ -786,7 +810,7 @@
       g.lineStyle(1, 0x000000, 0.15);
       g.strokeCircle(0, 0, size);
       const txt = this.add.text(0, 0, 'D', {
-        fontFamily: 'system-ui, sans-serif', fontSize: '12px',
+        fontFamily: uiFont(), fontSize: scaled(12) + 'px',
         color: '#000000', fontStyle: 'bold',
       }).setOrigin(0.5);
       btn.add([g, txt]);
@@ -811,11 +835,11 @@
       const labelText = 'POT';
       const amountText = '$' + (s.potAmount / 100).toFixed(2);
       const label = this.add.text(0, 0, labelText, {
-        fontFamily: 'system-ui, sans-serif', fontSize: p.labelSize + 'px',
+        fontFamily: uiFont(), fontSize: scaled(p.labelSize) + 'px',
         color: 'rgba(255,255,255,0.5)', fontStyle: 'bold',
       }).setOrigin(0, 0.5);
       const amount = this.add.text(0, 0, amountText, {
-        fontFamily: 'system-ui, sans-serif', fontSize: p.amountSize + 'px',
+        fontFamily: uiFont(), fontSize: scaled(p.amountSize) + 'px',
         color: p.accentColor, fontStyle: 'bold',
       }).setOrigin(0, 0.5);
 
@@ -950,6 +974,10 @@
     const m = 1 - amount;
     return `rgb(${Math.round(r * m)},${Math.round(g * m)},${Math.round(b * m)})`;
   }
+
+  // ===== Typography helpers =====
+  function uiFont() { return config.typography.uiFont; }
+  function scaled(px) { return Math.round(px * config.typography.scale); }
 
   // ===== Boot =====
   const canvasEl = document.getElementById('game-canvas');
