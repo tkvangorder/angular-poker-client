@@ -188,11 +188,17 @@ export class PokerTableScene extends Phaser.Scene {
     for (let pos = 1; pos <= MAX_SEATS; pos++) {
       const idx = pos - 1;
       const player = seatPlayerMap.get(pos);
-      const cards = ts.seatCards.get(pos) ?? null;
+      const rawCards = ts.seatCards.get(pos) ?? null;
       const isActive = ts.actionPosition === pos;
 
       if (player) {
-        const name = player.userId === this.currentUserId ? 'You' : player.displayName;
+        const isLocalUser = player.userId === this.currentUserId;
+        const name = isLocalUser ? 'You' : player.displayName;
+        // SeatCard.showCard is the post-hand reveal flag; the local user
+        // always sees their own hole cards face up regardless.
+        const cards = rawCards && isLocalUser
+          ? rawCards.map((c) => ({ ...c, showCard: true }))
+          : rawCards;
         this.seats[idx].updateSeat(name, player.chipCount, cards, isActive);
       } else {
         this.seats[idx].updateSeat(null, null, null, false);

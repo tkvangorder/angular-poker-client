@@ -41,13 +41,20 @@ export class ActionPanelComponent implements OnChanges {
     );
   }
 
-  /** True when there is an outstanding bet the player must match or raise over. */
+  /** True when this seat owes chips to match the current bet. False when the seat has already
+   *  matched (e.g. BB after SB calls) — in that case Check is the correct action. */
   get hasBetToCall(): boolean {
-    return (this.tableState?.currentBet ?? 0) > 0;
+    return this.callAmount > 0;
   }
 
   get callAmount(): number {
-    return this.tableState?.currentBet ?? 0;
+    return this.tableState?.callAmount ?? 0;
+  }
+
+  /** True when there is an outstanding bet on the table (open or matched). Discriminates
+   *  Raise from Bet — independent of whether *this* seat still owes chips. */
+  get hasOpenBet(): boolean {
+    return (this.tableState?.currentBet ?? 0) > 0;
   }
 
   get totalPot(): number {
@@ -74,7 +81,7 @@ export class ActionPanelComponent implements OnChanges {
   }
 
   submitBet(): void {
-    if (this.hasBetToCall) {
+    if (this.hasOpenBet) {
       this.playerAction.emit({ type: 'raise', amount: this.betAmount });
     } else {
       this.playerAction.emit({ type: 'bet', amount: this.betAmount });
@@ -104,7 +111,7 @@ export class ActionPanelComponent implements OnChanges {
 
     this.step = ts.bigBlindAmount || 1;
 
-    if (this.hasBetToCall) {
+    if (this.hasOpenBet) {
       // Raise: minimum raise amount, capped at player's stack
       this.minBet = ts.minimumRaise || ts.currentBet * 2;
     } else {

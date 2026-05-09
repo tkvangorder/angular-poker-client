@@ -12,9 +12,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ToastMessageComponent } from './toast-message.component';
 import { CommonModule } from '@angular/common';
 @Component({
-    selector: 'app-toast-display',
-    imports: [ToastMessageComponent, CommonModule],
-    templateUrl: './toast-display.component.html'
+  selector: 'app-toast-display',
+  imports: [CommonModule],
+  templateUrl: './toast-display.component.html',
 })
 export class ToastDisplayComponent implements OnInit {
   @ViewChild('toaster', { read: ViewContainerRef, static: true })
@@ -24,7 +24,7 @@ export class ToastDisplayComponent implements OnInit {
 
   constructor(
     private toastService: ToasterService,
-    private destroyRef: DestroyRef
+    private destroyRef: DestroyRef,
   ) {}
   ngOnInit(): void {
     this.toastService.toastSubscription
@@ -32,7 +32,7 @@ export class ToastDisplayComponent implements OnInit {
       .subscribe({
         next: (toastMessage) => {
           const toastComponent = this.toastContainer.createComponent(
-            ToastMessageComponent
+            ToastMessageComponent,
           );
           toastComponent.instance.message = toastMessage.message;
           toastComponent.instance.type = toastMessage.type;

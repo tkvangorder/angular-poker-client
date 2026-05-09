@@ -352,6 +352,26 @@ export class GameStateService implements OnDestroy {
         break;
       }
 
+      case 'player-disconnected': {
+        const name = this.getDisplayName(event.userId);
+        state.messages = [...state.messages, this.createInfoMessage(event.gameId, `${name} disconnected`)];
+        break;
+      }
+
+      case 'player-reconnected': {
+        const name = this.getDisplayName(event.userId);
+        state.messages = [...state.messages, this.createInfoMessage(event.gameId, `${name} reconnected`)];
+        break;
+      }
+
+      case 'admin-viewing-replay': {
+        state.messages = [
+          ...state.messages,
+          this.createInfoMessage(event.gameId, `${event.adminAlias} is reviewing hand #${event.handNumber}`),
+        ];
+        break;
+      }
+
       case 'table-status-changed': {
         this.updateTable(state, event.tableId, (t) => ({
           ...t,
@@ -373,6 +393,31 @@ export class GameStateService implements OnDestroy {
           ...t,
           phase: 'WAITING_FOR_PLAYERS',
         }));
+        break;
+      }
+
+      case 'blind-posted': {
+        this.updateTable(state, event.tableId, (t) => {
+          const seatSummaries = new Map(t.seatSummaries);
+          const prior = seatSummaries.get(event.seatPosition);
+          if (prior) {
+            seatSummaries.set(event.seatPosition, {
+              ...prior,
+              chipCount: prior.chipCount - event.amountPosted,
+              currentBetAmount: prior.currentBetAmount + event.amountPosted,
+            });
+          }
+          return { ...t, seatSummaries };
+        });
+        const players = new Map(state.players);
+        const existingPlayer = players.get(event.userId);
+        if (existingPlayer) {
+          players.set(event.userId, {
+            ...existingPlayer,
+            chipCount: existingPlayer.chipCount - event.amountPosted,
+          });
+          state.players = players;
+        }
         break;
       }
 
@@ -438,10 +483,16 @@ export class GameStateService implements OnDestroy {
           const seatSummaries = new Map(t.seatSummaries);
           const prior = seatSummaries.get(event.seatPosition);
           if (prior) {
+            // PlayerActed doesn't carry currentBetAmount; derive it from the
+            // chip delta. Fold/check spend 0 chips so bet is unchanged; call/
+            // bet/raise/all-in increase the seat's bet by exactly the chips
+            // that left the stack.
+            const chipsSpent = prior.chipCount - event.chipCount;
             seatSummaries.set(event.seatPosition, {
               ...prior,
               status: event.resultingStatus,
               chipCount: event.chipCount,
+              currentBetAmount: prior.currentBetAmount + chipsSpent,
             });
           }
           return {

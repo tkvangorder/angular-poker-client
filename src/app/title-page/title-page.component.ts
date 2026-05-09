@@ -9,7 +9,7 @@ import { ModalService } from '../modal/modal.service';
 @Component({
     selector: 'app-title-page',
     templateUrl: './title-page.component.html',
-    imports: [RouterLink, ModalComponent, LoginDialogComponent, RegisterUserFormComponent]
+    imports: [RouterLink]
 })
 export class TitlePageComponent {
   constructor(

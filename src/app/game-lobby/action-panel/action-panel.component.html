@@ -50,7 +50,7 @@
 
     <!-- Submit bet -->
     <button class="btn btn-success btn-sm" [disabled]="!isMyTurn" (click)="submitBet()">
-      @if (hasBetToCall) {
+      @if (hasOpenBet) {
         Raise
       } @else {
         Bet

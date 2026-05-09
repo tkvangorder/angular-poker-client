@@ -81,6 +81,30 @@ export interface PlayerMovedTablesEvent {
   toTableId: string;
 }
 
+export interface PlayerDisconnectedEvent {
+  eventType: 'player-disconnected';
+  timestamp: string;
+  gameId: string;
+  userId: string;
+}
+
+export interface PlayerReconnectedEvent {
+  eventType: 'player-reconnected';
+  timestamp: string;
+  gameId: string;
+  userId: string;
+}
+
+export interface AdminViewingReplayEvent {
+  eventType: 'admin-viewing-replay';
+  timestamp: string;
+  gameId: string;
+  adminUserId: string;
+  adminAlias: string;
+  tableId: string;
+  handNumber: number;
+}
+
 // --- Table-Level Events ---
 
 export interface TableStatusChangedEvent {
@@ -108,6 +132,19 @@ export interface WaitingForPlayersEvent {
   tableId: string;
   activePlayers: number;
   seatedPlayers: number;
+}
+
+export type BlindType = 'SMALL' | 'BIG';
+
+export interface BlindPostedEvent {
+  eventType: 'blind-posted';
+  timestamp: string;
+  gameId: string;
+  tableId: string;
+  seatPosition: number;
+  userId: string;
+  blindType: BlindType;
+  amountPosted: number;
 }
 
 export interface HandStartedEvent {
@@ -270,10 +307,14 @@ export type GameEvent =
   | PlayerSeatedEvent
   | PlayerBuyInEvent
   | PlayerMovedTablesEvent
+  | PlayerDisconnectedEvent
+  | PlayerReconnectedEvent
+  | AdminViewingReplayEvent
   | TableStatusChangedEvent
   | HandPhaseChangedEvent
   | WaitingForPlayersEvent
   | HandStartedEvent
+  | BlindPostedEvent
   | HoleCardsDealtEvent
   | CommunityCardsDealtEvent
   | PlayerActedEvent
