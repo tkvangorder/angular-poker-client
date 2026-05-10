@@ -1,9 +1,12 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PlayerAction } from '../../game/game-commands';
 import { TableState } from '../../game/game-state.service';
 import { LangUtils } from '../../lib/lang.utils';
+
+export type StepUnit = 'BB' | 'SB';
+export const STEP_UNIT_STORAGE_KEY = 'pokerActionPanel.stepUnit';
 
 @Component({
   selector: 'app-action-panel',
@@ -11,7 +14,7 @@ import { LangUtils } from '../../lib/lang.utils';
   imports: [CommonModule, FormsModule],
   templateUrl: './action-panel.component.html',
 })
-export class ActionPanelComponent implements OnChanges {
+export class ActionPanelComponent implements OnChanges, OnInit {
   @Input() tableState: TableState | null = null;
   @Input() playerChipCount: number = 0;
   @Input() seatPosition: number | null = null;
@@ -22,22 +25,18 @@ export class ActionPanelComponent implements OnChanges {
   minBet: number = 0;
   maxBet: number = 0;
   step: number = 0;
+  stepUnit: StepUnit = 'BB';
+
+  ngOnInit(): void {
+    const saved = this.readStoredStepUnit();
+    if (saved) this.stepUnit = saved;
+  }
 
   get isMyTurn(): boolean {
     return (
       this.tableState != null &&
       this.seatPosition != null &&
       this.tableState.actionPosition === this.seatPosition
-    );
-  }
-
-  get isBettingPhase(): boolean {
-    const phase = this.tableState?.phase;
-    return (
-      phase === 'PRE_FLOP_BETTING' ||
-      phase === 'FLOP_BETTING' ||
-      phase === 'TURN_BETTING' ||
-      phase === 'RIVER_BETTING'
     );
   }
 
@@ -88,17 +87,26 @@ export class ActionPanelComponent implements OnChanges {
     }
   }
 
+  setMin(): void {
+    this.betAmount = this.minBet;
+  }
+
   setHalfPot(): void {
-    const half = Math.floor(this.totalPot / 2);
-    this.betAmount = this.clampBet(half);
+    this.betAmount = this.clampBet(Math.floor(this.totalPot / 2));
   }
 
   setFullPot(): void {
     this.betAmount = this.clampBet(this.totalPot);
   }
 
-  allIn(): void {
+  setMax(): void {
     this.betAmount = this.maxBet;
+  }
+
+  toggleStepUnit(): void {
+    this.stepUnit = this.stepUnit === 'BB' ? 'SB' : 'BB';
+    this.persistStepUnit(this.stepUnit);
+    this.recalculateBetRange();
   }
 
   formatCents(cents: number): string {
@@ -109,22 +117,38 @@ export class ActionPanelComponent implements OnChanges {
     const ts = this.tableState;
     if (!ts) return;
 
-    this.step = ts.bigBlindAmount || 1;
+    const blind = this.stepUnit === 'BB' ? ts.bigBlindAmount : ts.smallBlindAmount;
+    this.step = blind || 1;
 
     if (this.hasOpenBet) {
-      // Raise: minimum raise amount, capped at player's stack
       this.minBet = ts.minimumRaise || ts.currentBet * 2;
     } else {
-      // Open bet: minimum is the big blind
       this.minBet = ts.bigBlindAmount || 1;
     }
 
     this.maxBet = this.playerChipCount;
     this.minBet = Math.min(this.minBet, this.maxBet);
-    this.betAmount = this.clampBet(this.minBet);
+    this.betAmount = this.clampBet(this.betAmount || this.minBet);
   }
 
   private clampBet(value: number): number {
     return Math.max(this.minBet, Math.min(value, this.maxBet));
+  }
+
+  private readStoredStepUnit(): StepUnit | null {
+    try {
+      const value = localStorage.getItem(STEP_UNIT_STORAGE_KEY);
+      return value === 'BB' || value === 'SB' ? value : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private persistStepUnit(unit: StepUnit): void {
+    try {
+      localStorage.setItem(STEP_UNIT_STORAGE_KEY, unit);
+    } catch {
+      // ignore persistence failures (e.g. storage quota, private mode)
+    }
   }
 }
