@@ -101,6 +101,15 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this.setVisible(false);
   }
 
+  setTint(color: number): void {
+    this.iterate((child: Phaser.GameObjects.GameObject) => {
+      const tintable = child as Phaser.GameObjects.GameObject & { setTint?: (c: number) => void };
+      if (typeof tintable.setTint === 'function') {
+        tintable.setTint(color);
+      }
+    });
+  }
+
   setCardSize(width: number): void {
     this.cardWidth = width;
     this.cardHeight = Math.round(width * 1.4);

@@ -4,6 +4,9 @@ import { SeatCard } from '../../../game/game-models';
 
 const POD_BG = 0x0f0a05;
 const POD_BG_ALPHA = 0.8;
+const POD_BG_FOLDED_ALPHA = 0.4;
+const FOLDED_TEXT_COLOR = 'rgba(255,255,255,0.35)';
+const FOLDED_TAG_GAP = 2;
 const POD_BORDER_IDLE = 0xffffff;
 const POD_BORDER_IDLE_ALPHA = 0.08;
 const POD_BORDER_ACTIVE = 0xf5d678;
@@ -49,6 +52,8 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
   private stackText: Phaser.GameObjects.Text;
   private card1: CardSprite;
   private card2: CardSprite;
+  private foldedTag: Phaser.GameObjects.Text;
+  private lastPodH = 0;
 
   // Empty-slot visuals
   private emptyRing: Phaser.GameObjects.Graphics;
@@ -110,6 +115,15 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     }).setOrigin(0, 0.5);
     this.add(this.stackText);
 
+    this.foldedTag = new Phaser.GameObjects.Text(scene, 0, 0, 'FOLDED', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '9px',
+      fontStyle: 'bold',
+      color: FOLDED_TEXT_COLOR,
+    }).setOrigin(0, 0.5);
+    this.add(this.foldedTag);
+    this.foldedTag.setVisible(false);
+
     this.card1 = new CardSprite(scene, 0, 0);
     this.add(this.card1);
     this.card1.hide();
@@ -141,12 +155,13 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     chipCount: number | null,
     cards: SeatCard[] | null,
     isActive: boolean,
+    isFolded: boolean,
   ): void {
     if (!playerName) {
       this.renderEmpty();
       return;
     }
-    this.renderOccupied(playerName, chipCount, cards, isActive);
+    this.renderOccupied(playerName, chipCount, cards, isActive, isFolded);
   }
 
   setTimer(frac: number): void {
@@ -178,6 +193,7 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     this.initialText.setVisible(false);
     this.nameText.setVisible(false);
     this.stackText.setVisible(false);
+    this.foldedTag.setVisible(false);
     this.card1.hide();
     this.card2.hide();
     this.timer.clear();
@@ -195,6 +211,7 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     chipCount: number | null,
     cards: SeatCard[] | null,
     isActive: boolean,
+    isFolded: boolean,
   ): void {
     this.setVisible(true);
     this.emptyRing.clear();
@@ -240,7 +257,8 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
 
     // Background pod
     this.bg.clear();
-    this.bg.fillStyle(POD_BG, POD_BG_ALPHA);
+    const podAlpha = isFolded ? POD_BG_FOLDED_ALPHA : POD_BG_ALPHA;
+    this.bg.fillStyle(POD_BG, podAlpha);
     this.bg.fillRoundedRect(-podW / 2, -podH / 2, podW, podH, s.podRadius);
     const borderColor = isActive ? POD_BORDER_ACTIVE : POD_BORDER_IDLE;
     const borderAlpha = isActive ? 1 : POD_BORDER_IDLE_ALPHA;
@@ -290,10 +308,35 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
       this.card2.hide();
     }
 
+    // Folded tag below the stack text
+    if (isFolded) {
+      this.foldedTag.setFontSize(Math.max(8, Math.round(stackFontSize * 0.85)));
+      this.foldedTag.setPosition(textX, nameFontSize / 2 + stackFontSize + FOLDED_TAG_GAP);
+      this.foldedTag.setVisible(true);
+    } else {
+      this.foldedTag.setVisible(false);
+    }
+
+    // Greyscale tint on hole cards when folded
+    const cardTint = isFolded ? 0x808080 : 0xffffff;
+    this.card1.setTint(cardTint);
+    this.card2.setTint(cardTint);
+
+    this.lastPodH = podH;
+
     this.timerPodW = podW;
     this.timerPodH = podH;
     this.timerActive = isActive;
     this.redrawTimer();
+  }
+
+  /**
+   * Returns the local-space coordinates where an external badge should be
+   * anchored (above the pod, centered horizontally). Caller adds seat.x/y for
+   * world space.
+   */
+  getBadgeAnchor(): { x: number; y: number } {
+    return { x: 0, y: -this.lastPodH / 2 - 14 };
   }
 
   private truncateName(name: string): string {

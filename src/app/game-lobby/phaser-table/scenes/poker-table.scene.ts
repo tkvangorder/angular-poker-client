@@ -172,7 +172,7 @@ export class PokerTableScene extends Phaser.Scene {
     const players = this.currentPlayers;
 
     if (!ts) {
-      for (const seat of this.seats) seat.updateSeat(null, null, null, false);
+      for (const seat of this.seats) seat.updateSeat(null, null, null, false, false);
       for (const chip of this.betChips) chip.setAmount(0);
       this.communityCards.updateCards([]);
       this.potDisplay.updatePots([]);
@@ -199,9 +199,9 @@ export class PokerTableScene extends Phaser.Scene {
         const cards = rawCards && isLocalUser
           ? rawCards.map((c) => ({ ...c, showCard: true }))
           : rawCards;
-        this.seats[idx].updateSeat(name, player.chipCount, cards, isActive);
+        this.seats[idx].updateSeat(name, player.chipCount, cards, isActive, false);
       } else {
-        this.seats[idx].updateSeat(null, null, null, false);
+        this.seats[idx].updateSeat(null, null, null, false, false);
       }
 
       const summary = ts.seatSummaries.get(pos);
