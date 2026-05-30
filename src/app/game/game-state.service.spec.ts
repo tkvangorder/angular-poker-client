@@ -383,4 +383,95 @@ describe('GameStateService', () => {
       expect(winnerMsg!.message).toContain('Pair of Aces');
     });
   });
+
+  describe('player-acted log messages', () => {
+    function getMessages(): Array<ClientGameMessage | UserMessageEvent> {
+      let result: Array<ClientGameMessage | UserMessageEvent> = [];
+      service.getMessages().subscribe((m) => { result = m; });
+      return result;
+    }
+
+    beforeEach(() => {
+      ws.events$.next(handStarted([seat(2, 'user-2', 95, 5), seat(3, 'user-3', 90, 10)]));
+    });
+
+    it('logs "folds" with kind=action', () => {
+      ws.events$.next({
+        eventType: 'player-acted',
+        timestamp: '2026-05-09T00:00:01Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        seatPosition: 2,
+        userId: 'user-2',
+        action: { type: 'fold' },
+        chipCount: 95,
+        resultingStatus: 'FOLDED',
+        currentBet: 10,
+        minimumRaise: 10,
+        potTotal: 15,
+      } satisfies PlayerActedEvent);
+
+      const last = getMessages().at(-1)!;
+      expect(last.eventType).toBe('game-message');
+      expect((last as ClientGameMessage).kind).toBe('action');
+      expect(last.message).toMatch(/folds$/);
+    });
+
+    it('logs "calls $X.XX"', () => {
+      ws.events$.next({
+        eventType: 'player-acted',
+        timestamp: '2026-05-09T00:00:01Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        seatPosition: 2,
+        userId: 'user-2',
+        action: { type: 'call', amount: 5 },
+        chipCount: 90,
+        resultingStatus: 'ACTIVE',
+        currentBet: 10,
+        minimumRaise: 10,
+        potTotal: 20,
+      } satisfies PlayerActedEvent);
+
+      expect(getMessages().at(-1)!.message).toMatch(/calls \$0\.05$/);
+    });
+
+    it('logs "raises to $X.XX" using the wire-level total bet amount', () => {
+      ws.events$.next({
+        eventType: 'player-acted',
+        timestamp: '2026-05-09T00:00:01Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        seatPosition: 3,
+        userId: 'user-3',
+        action: { type: 'raise', amount: 30 },
+        chipCount: 70,
+        resultingStatus: 'ACTIVE',
+        currentBet: 30,
+        minimumRaise: 20,
+        potTotal: 35,
+      } satisfies PlayerActedEvent);
+
+      expect(getMessages().at(-1)!.message).toMatch(/raises to \$0\.30$/);
+    });
+
+    it('appends "(all in)" when resultingStatus is ALL_IN', () => {
+      ws.events$.next({
+        eventType: 'player-acted',
+        timestamp: '2026-05-09T00:00:01Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        seatPosition: 3,
+        userId: 'user-3',
+        action: { type: 'raise', amount: 90 },
+        chipCount: 0,
+        resultingStatus: 'ALL_IN',
+        currentBet: 90,
+        minimumRaise: 80,
+        potTotal: 95,
+      } satisfies PlayerActedEvent);
+
+      expect(getMessages().at(-1)!.message).toMatch(/raises to \$0\.90 \(all in\)$/);
+    });
+  });
 });

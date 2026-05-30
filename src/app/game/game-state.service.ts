@@ -15,6 +15,7 @@ import {
   UserMessageEvent,
   SeatSummary,
 } from './game-events';
+import { PlayerAction } from './game-commands';
 
 export interface TableState {
   tableId: string;
@@ -213,6 +214,16 @@ export class GameStateService implements OnDestroy {
       gameId,
       message,
     };
+  }
+
+  private formatActionVerb(action: PlayerAction): string {
+    switch (action.type) {
+      case 'fold': return 'folds';
+      case 'check': return 'checks';
+      case 'call': return `calls ${LangUtils.formatCurrency(action.amount)}`;
+      case 'bet': return `bets ${LangUtils.formatCurrency(action.amount)}`;
+      case 'raise': return `raises to ${LangUtils.formatCurrency(action.amount)}`;
+    }
   }
 
   private updateTable(
@@ -511,6 +522,19 @@ export class GameStateService implements OnDestroy {
             actionSeq: t.actionSeq + 1,
           };
         });
+
+        // Append action history message
+        const actorName = this.getDisplayName(event.userId);
+        const verb = this.formatActionVerb(event.action);
+        const allInSuffix = event.resultingStatus === 'ALL_IN' ? ' (all in)' : '';
+        const actionMsg: ClientGameMessage = {
+          eventType: 'game-message',
+          timestamp: new Date().toISOString(),
+          gameId: event.gameId,
+          message: `${actorName} ${verb}${allInSuffix}`,
+          kind: 'action',
+        };
+        state.messages = [...state.messages, actionMsg];
 
         // Update player chip count
         const players = new Map(state.players);
