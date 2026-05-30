@@ -77,15 +77,9 @@ export class ActionBadge extends Phaser.GameObjects.Container {
       return;
     }
 
-    // For action kinds, the actionSeq must change for us to retrigger the
-    // fade animation; otherwise an idle re-render keeps the badge in its
-    // current fade phase.
-    const isAction = !STICKY_KINDS.includes(state.kind);
-    if (
-      this.currentKind === state.kind &&
-      this.currentSeq === state.actionSeq &&
-      !isAction // sticky kinds: skip re-show; action kinds: always re-show on same seq is fine (no-op)
-    ) {
+    // actionSeq increments on each new player action; idle re-renders of the
+    // same (kind, seq) pair must not reset the fade timer.
+    if (this.currentKind === state.kind && this.currentSeq === state.actionSeq) {
       return;
     }
 
