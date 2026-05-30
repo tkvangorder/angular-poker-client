@@ -330,13 +330,9 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     this.redrawTimer();
   }
 
-  /**
-   * Returns the local-space coordinates where an external badge should be
-   * anchored (above the pod, centered horizontally). Caller adds seat.x/y for
-   * world space.
-   */
-  getBadgeAnchor(): { x: number; y: number } {
-    return { x: 0, y: -this.lastPodH / 2 - 14 };
+  /** Half-height of the current pod, in pixels, for external placement (e.g. action badges). */
+  getPodHalfHeight(): number {
+    return this.lastPodH / 2;
   }
 
   private truncateName(name: string): string {

@@ -161,13 +161,20 @@ export class PokerTableScene extends Phaser.Scene {
     }
 
     const badgeFontSize = Math.max(10, Math.round(width * 0.008));
+    const badgeGap = Math.max(14, Math.round(width * 0.012));
     for (let i = 0; i < MAX_SEATS; i++) {
       this.actionBadges[i].setFontSize(badgeFontSize);
-      const anchor = this.seats[i].getBadgeAnchor();
-      this.actionBadges[i].setPosition(
-        this.seatPositions[i].x + anchor.x,
-        this.seatPositions[i].y + anchor.y,
-      );
+      const sx = this.seatPositions[i].x;
+      const sy = this.seatPositions[i].y;
+      // Radial-outward unit vector from table center to this seat.
+      const ox = sx - this.cx;
+      const oy = sy - this.cy;
+      const mag = Math.hypot(ox, oy) || 1;
+      const ux = ox / mag;
+      const uy = oy / mag;
+      const podHalfH = this.seats[i].getPodHalfHeight();
+      const outwardDist = podHalfH + badgeGap;
+      this.actionBadges[i].setPosition(sx + ux * outwardDist, sy + uy * outwardDist);
     }
 
     const communityCardWidth = Math.max(36, width * 0.051);
