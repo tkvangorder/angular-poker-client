@@ -12,6 +12,7 @@ import {
   SeatCard,
   HandPhase,
   GameMessageEvent,
+  ClientGameMessage,
   UserMessageEvent,
   SeatSummary,
 } from './game-events';
@@ -58,7 +59,7 @@ export interface GameState {
   status: GameStatus | null;
   players: Map<string, PlayerState>;
   tables: Map<string, TableState>;
-  messages: Array<GameMessageEvent | UserMessageEvent>;
+  messages: Array<ClientGameMessage | UserMessageEvent>;
 }
 
 function createInitialState(): GameState {
@@ -196,7 +197,7 @@ export class GameStateService implements OnDestroy {
     return this.state$.pipe(map((s) => s.tables));
   }
 
-  getMessages(): Observable<Array<GameMessageEvent | UserMessageEvent>> {
+  getMessages(): Observable<Array<ClientGameMessage | UserMessageEvent>> {
     return this.state$.pipe(map((s) => s.messages));
   }
 
@@ -206,7 +207,7 @@ export class GameStateService implements OnDestroy {
     return this.displayNames.get(userId) ?? userId;
   }
 
-  private createInfoMessage(gameId: string, message: string): GameMessageEvent {
+  private createInfoMessage(gameId: string, message: string): ClientGameMessage {
     return {
       eventType: 'game-message',
       timestamp: new Date().toISOString(),

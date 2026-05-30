@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GameMessageEvent, UserMessageEvent } from '../../game/game-events';
+import { ClientGameMessage, UserMessageEvent } from '../../game/game-events';
 
 @Component({
   selector: 'app-messages-panel',
@@ -8,9 +8,9 @@ import { GameMessageEvent, UserMessageEvent } from '../../game/game-events';
   templateUrl: './messages-panel.component.html',
 })
 export class MessagesPanelComponent {
-  @Input() messages: (GameMessageEvent | UserMessageEvent)[] = [];
+  @Input() messages: (ClientGameMessage | UserMessageEvent)[] = [];
 
-  getMessageClass(msg: GameMessageEvent | UserMessageEvent): string {
+  getMessageClass(msg: ClientGameMessage | UserMessageEvent): string {
     if (msg.eventType === 'user-message') {
       switch (msg.severity) {
         case 'ERROR': return 'text-error';
