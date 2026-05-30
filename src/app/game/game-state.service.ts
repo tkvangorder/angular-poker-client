@@ -529,6 +529,7 @@ export class GameStateService implements OnDestroy {
             seatPosition: event.seatPosition,
             action: event.defaultAction.type,
           },
+          actionSeq: t.actionSeq + 1,
         }));
         break;
       }

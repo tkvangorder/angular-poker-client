@@ -256,6 +256,28 @@ describe('GameStateService', () => {
       ws.events$.next(handStarted([seat(2, 'user-2', 95, 5), seat(3, 'user-3', 90, 10)]));
       expect(getActionSeq()).toBe(0);
     });
+
+    it('bumps on player-timed-out and records the default action', () => {
+      ws.events$.next(handStarted([seat(2, 'user-2', 95, 5), seat(3, 'user-3', 90, 10)]));
+
+      ws.events$.next({
+        eventType: 'player-timed-out',
+        timestamp: '2026-05-09T00:00:03Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        seatPosition: 3,
+        userId: 'user-3',
+        defaultAction: { type: 'fold' },
+      });
+
+      expect(getActionSeq()).toBe(1);
+
+      let lastAction: { seatPosition: number; action: string } | null = null;
+      service.getTableState(TABLE_ID).subscribe((t) => {
+        lastAction = t?.lastAction ?? null;
+      });
+      expect(lastAction).toEqual({ seatPosition: 3, action: 'fold' });
+    });
   });
 
   describe('blind-posted', () => {
