@@ -11,7 +11,6 @@ import {
   PotResult,
   SeatCard,
   HandPhase,
-  GameMessageEvent,
   ClientGameMessage,
   UserMessageEvent,
   SeatSummary,
