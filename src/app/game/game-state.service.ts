@@ -445,6 +445,7 @@ export class GameStateService implements OnDestroy {
           actionPosition: null,
           actionDeadline: null,
           callAmount: 0,
+          actionSeq: 0,
         }));
         this.syncPlayersFromSummaries(state, event.tableId, event.seats);
         state.messages = [...state.messages, this.createInfoMessage(event.gameId, `Hand #${event.handNumber} started`)];
@@ -507,6 +508,7 @@ export class GameStateService implements OnDestroy {
             minimumRaise: event.minimumRaise,
             potTotal: event.potTotal,
             seatSummaries,
+            actionSeq: t.actionSeq + 1,
           };
         });
 

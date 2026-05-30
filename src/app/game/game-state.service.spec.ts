@@ -197,6 +197,65 @@ describe('GameStateService', () => {
       ws.events$.next(handStarted([seat(2, 'user-2', 100, 0), seat(3, 'user-3', 100, 0)]));
       expect(getActionSeq()).toBe(0);
     });
+
+    it('increments on each player-acted event', () => {
+      ws.events$.next(handStarted([seat(2, 'user-2', 95, 5), seat(3, 'user-3', 90, 10)]));
+
+      ws.events$.next({
+        eventType: 'player-acted',
+        timestamp: '2026-05-09T00:00:01Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        seatPosition: 3,
+        userId: 'user-3',
+        action: { type: 'raise', amount: 30 },
+        chipCount: 70,
+        resultingStatus: 'ACTIVE',
+        currentBet: 30,
+        minimumRaise: 20,
+        potTotal: 35,
+      } satisfies PlayerActedEvent);
+      expect(getActionSeq()).toBe(1);
+
+      ws.events$.next({
+        eventType: 'player-acted',
+        timestamp: '2026-05-09T00:00:02Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        seatPosition: 2,
+        userId: 'user-2',
+        action: { type: 'call', amount: 25 },
+        chipCount: 70,
+        resultingStatus: 'ACTIVE',
+        currentBet: 30,
+        minimumRaise: 20,
+        potTotal: 60,
+      } satisfies PlayerActedEvent);
+      expect(getActionSeq()).toBe(2);
+    });
+
+    it('resets to 0 when a new hand starts', () => {
+      ws.events$.next(handStarted([seat(2, 'user-2', 95, 5), seat(3, 'user-3', 90, 10)]));
+
+      ws.events$.next({
+        eventType: 'player-acted',
+        timestamp: '2026-05-09T00:00:01Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        seatPosition: 3,
+        userId: 'user-3',
+        action: { type: 'fold' },
+        chipCount: 90,
+        resultingStatus: 'FOLDED',
+        currentBet: 10,
+        minimumRaise: 10,
+        potTotal: 15,
+      } satisfies PlayerActedEvent);
+      expect(getActionSeq()).toBe(1);
+
+      ws.events$.next(handStarted([seat(2, 'user-2', 95, 5), seat(3, 'user-3', 90, 10)]));
+      expect(getActionSeq()).toBe(0);
+    });
   });
 
   describe('blind-posted', () => {
