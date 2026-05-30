@@ -41,6 +41,7 @@ export interface TableState {
   callAmount: number;
   currentBet: number;
   minimumRaise: number;
+  actionSeq: number;
 }
 
 export interface PlayerState {
@@ -93,6 +94,7 @@ function createInitialTableState(tableId: string): TableState {
     callAmount: 0,
     currentBet: 0,
     minimumRaise: 0,
+    actionSeq: 0,
   };
 }
 

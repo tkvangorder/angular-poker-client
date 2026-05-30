@@ -184,6 +184,21 @@ describe('GameStateService', () => {
     });
   });
 
+  describe('actionSeq', () => {
+    function getActionSeq(): number | undefined {
+      let seq: number | undefined;
+      service.getTableState(TABLE_ID).subscribe((t) => {
+        seq = t?.actionSeq;
+      });
+      return seq;
+    }
+
+    it('initializes to 0 when a hand starts', () => {
+      ws.events$.next(handStarted([seat(2, 'user-2', 100, 0), seat(3, 'user-3', 100, 0)]));
+      expect(getActionSeq()).toBe(0);
+    });
+  });
+
   describe('blind-posted', () => {
     it('debits chips and credits currentBetAmount on the posting seat', () => {
       // Seed seat summaries via a minimal hand-started so the seat exists.
