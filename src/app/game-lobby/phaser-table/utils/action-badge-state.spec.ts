@@ -44,7 +44,7 @@ describe('computeBadgeState', () => {
     expect(computeBadgeState(1, null).kind).toBe('none');
   });
 
-  it('returns none for a seat that is neither to-act nor the most recent actor', () => {
+  it('returns none for a seat that is not the most recent actor', () => {
     const ts = makeTableState({
       actionPosition: 2,
       lastAction: { seatPosition: 3, action: 'call' },
@@ -53,23 +53,21 @@ describe('computeBadgeState', () => {
     expect(computeBadgeState(5, ts).kind).toBe('none');
   });
 
-  it('returns to-act for the current action position with no lastAction', () => {
+  it('returns none for the seat on the clock — the pod glow conveys "your turn"', () => {
     const ts = makeTableState({ actionPosition: 2, lastAction: null });
-    expect(computeBadgeState(2, ts)).toEqual<BadgeState>({
-      kind: 'to-act', line1: 'TO ACT', line2: '', actionSeq: 0,
-    });
+    expect(computeBadgeState(2, ts).kind).toBe('none');
   });
 
-  it('returns to-act for the action position even when another seat acted last', () => {
+  it('still returns none for the action position when another seat acted last', () => {
     const ts = makeTableState({
       actionPosition: 2,
       lastAction: { seatPosition: 5, action: 'call' },
       actionSeq: 3,
     });
-    expect(computeBadgeState(2, ts).kind).toBe('to-act');
+    expect(computeBadgeState(2, ts).kind).toBe('none');
   });
 
-  it('shows the action (not to-act) when a seat is both actionPosition and the most recent actor', () => {
+  it('shows the action for a seat that is both actionPosition and the most recent actor', () => {
     // This brief window exists between `player-acted` and the next `action-on-player`:
     // actionPosition still points at the seat that just acted.
     const ts = makeTableState({

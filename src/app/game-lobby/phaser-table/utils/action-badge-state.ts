@@ -3,7 +3,6 @@ import { PotResult, Winner } from '../../../game/game-events';
 
 export type BadgeKind =
   | 'none'
-  | 'to-act'
   | 'fold'
   | 'check'
   | 'call'
@@ -79,9 +78,9 @@ export function computeBadgeState(
     if (winnerBadge) return winnerBadge;
   }
 
-  // 2. If this seat is the most recent actor, show their action. This must
-  //    win over to-act because between `player-acted` and the next
-  //    `action-on-player`, both flags are briefly true for this seat.
+  // 2. If this seat is the most recent actor, show their action. The seat on
+  //    the clock relies on the existing pod glow + timer bar for "your turn"
+  //    feedback — no dedicated badge for that state.
   const la = tableState.lastAction;
   if (la && la.seatPosition === seatPosition) {
     const seq = tableState.actionSeq;
@@ -112,11 +111,6 @@ export function computeBadgeState(
       default:
         return NONE;
     }
-  }
-
-  // 3. If this seat is the action position (and didn't just act), show TO ACT.
-  if (tableState.actionPosition === seatPosition) {
-    return { kind: 'to-act', line1: 'TO ACT', line2: '', actionSeq: 0 };
   }
 
   return NONE;

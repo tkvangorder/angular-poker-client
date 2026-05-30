@@ -10,7 +10,6 @@ interface PaletteEntry {
 }
 
 const PALETTE: Record<Exclude<BadgeKind, 'none'>, PaletteEntry> = {
-  'to-act':  { bg: 0x000000, bgAlpha: 0.6, border: 0xf5d678, textColor: '#f5d678', pulse: false },
   'fold':    { bg: 0x4a1414, bgAlpha: 0.85, border: 0xb84141, textColor: '#ff8888', pulse: false },
   'check':   { bg: 0x000000, bgAlpha: 0.7, border: 0xcccccc, textColor: '#ffffff', pulse: false },
   'call':    { bg: 0x14304a, bgAlpha: 0.85, border: 0x4488cc, textColor: '#88bbff', pulse: false },
@@ -27,7 +26,7 @@ const ACTION_HOLD_MS = 2500;
 const TEXT_LINE_GAP = 2;
 
 /** Kinds that auto-fade after ACTION_HOLD_MS. Others are sticky. */
-const STICKY_KINDS: BadgeKind[] = ['to-act', 'winner', 'none'];
+const STICKY_KINDS: BadgeKind[] = ['winner', 'none'];
 
 export class ActionBadge extends Phaser.GameObjects.Container {
   private bg: Phaser.GameObjects.Graphics;
