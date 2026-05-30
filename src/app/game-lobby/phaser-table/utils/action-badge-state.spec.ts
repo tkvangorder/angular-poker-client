@@ -147,6 +147,27 @@ describe('computeBadgeState', () => {
     expect(computeBadgeState(5, ts).line1).toBe('ALL IN');
   });
 
+  it('upgrades to all-in when a call shoves the stack', () => {
+    const ts = makeTableState({
+      lastAction: { seatPosition: 5, action: 'call' },
+      actionSeq: 12,
+      seatSummaries: new Map([[5, summary(5, 'ALL_IN', 0, 50)]]),
+    });
+    expect(computeBadgeState(5, ts).kind).toBe('all-in');
+    expect(computeBadgeState(5, ts).line1).toBe('ALL IN');
+  });
+
+  it('upgrades to all-in when a bet shoves the stack', () => {
+    const ts = makeTableState({
+      lastAction: { seatPosition: 5, action: 'bet' },
+      currentBet: 30,
+      actionSeq: 13,
+      seatSummaries: new Map([[5, summary(5, 'ALL_IN', 0, 30)]]),
+    });
+    expect(computeBadgeState(5, ts).kind).toBe('all-in');
+    expect(computeBadgeState(5, ts).line1).toBe('ALL IN');
+  });
+
   it('returns winner with WON $X.XX and hand description for a single-pot winner', () => {
     const ts = makeTableState({
       potResults: [

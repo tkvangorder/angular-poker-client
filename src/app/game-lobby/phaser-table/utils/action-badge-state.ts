@@ -49,7 +49,7 @@ function computeWinnerBadge(seatPos: number, potResults: PotResult[]): BadgeStat
 
   const totalAmount = wins.reduce((sum, w) => sum + w.winner.amount, 0);
   const description = wins.reduce(
-    (longest, w) => (w.pot.potAmount > (longest.pot.potAmount ?? 0) ? w : longest),
+    (largestPot, w) => (w.pot.potAmount > (largestPot.pot.potAmount ?? 0) ? w : largestPot),
     wins[0],
   ).winner.handDescription;
 
