@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ModalComponent, ModalOptions } from '../../modal/modal.component';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { ModalService } from '../../modal/modal.service';
 import { UserService } from '../../user/user-service';
 import { Router } from '@angular/router';
@@ -11,7 +11,7 @@ import { ValidationError } from '../../error-handling/error-models';
 @Component({
   selector: 'app-register-user',
   templateUrl: './register-user-dialog.component.html',
-  imports: [ModalComponent, CommonModule, ReactiveFormsModule]
+  imports: [ModalComponent, ReactiveFormsModule]
 })
 export class RegisterUserFormComponent {
   modalOptions: ModalOptions = {

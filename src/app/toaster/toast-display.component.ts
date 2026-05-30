@@ -10,10 +10,10 @@ import {
 import { ToasterService } from './toaster.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ToastMessageComponent } from './toast-message.component';
-import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-toast-display',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './toast-display.component.html',
 })
 export class ToastDisplayComponent implements OnInit {

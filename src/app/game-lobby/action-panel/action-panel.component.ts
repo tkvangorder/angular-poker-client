@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { PlayerAction } from '../../game/game-commands';
 import { TableState } from '../../game/game-state.service';
@@ -11,7 +11,7 @@ export const STEP_UNIT_STORAGE_KEY = 'pokerActionPanel.stepUnit';
 @Component({
   selector: 'app-action-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './action-panel.component.html',
 })
 export class ActionPanelComponent implements OnChanges, OnInit {

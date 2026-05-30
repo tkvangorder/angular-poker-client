@@ -1,7 +1,7 @@
 # Angular Poker Client - CLAUDE.md
 
 ## Project Overview
-Angular 19 standalone-component poker game client. Connects to a REST + WebSocket backend at `http://localhost:8080`.
+Angular 21 standalone-component poker game client. Connects to a REST + WebSocket backend at `http://localhost:8080`.
 
 ## Commands
 ```bash

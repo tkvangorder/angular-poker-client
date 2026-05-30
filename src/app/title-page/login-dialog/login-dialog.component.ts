@@ -5,7 +5,7 @@ import {
   ModalOptions,
 } from '../../modal/modal.component';
 import { ModalService } from '../../modal/modal.service';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../user/user-service';
 import { Router } from '@angular/router';
@@ -14,7 +14,7 @@ import { ValidationError } from '../../error-handling/error-models';
 @Component({
     selector: 'app-login-form',
     templateUrl: './login-dialog.component.html',
-    imports: [ModalComponent, CommonModule, ReactiveFormsModule]
+    imports: [ModalComponent, ReactiveFormsModule]
 })
 export class LoginDialogComponent implements Modal {
   loginForm = new FormGroup({

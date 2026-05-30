@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule, formatDate } from '@angular/common';
+import { formatDate } from '@angular/common';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import {
@@ -19,7 +19,7 @@ import { LangUtils } from '../../../lib/lang.utils';
 @Component({
     selector: 'app-create-cash-game-dialog',
     templateUrl: './create-cash-game-dialog.component.html',
-    imports: [ModalComponent, CommonModule, ReactiveFormsModule]
+    imports: [ModalComponent, ReactiveFormsModule]
 })
 export class CreateCashGameDialogComponent implements Modal {
   modalOptions: ModalOptions = {
