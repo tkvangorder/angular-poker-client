@@ -8,6 +8,8 @@ import { CommunityCards } from '../game-objects/community-cards';
 import { PotDisplay } from '../game-objects/pot-display';
 import { DealerButton } from '../game-objects/dealer-button';
 import { BetChip } from '../game-objects/bet-chip';
+import { ActionBadge } from '../game-objects/action-badge';
+import { computeBadgeState } from '../utils/action-badge-state';
 import { getAllSeatPositions, MAX_SEATS, SeatPosition } from '../utils/seat-layout';
 
 export class PokerTableScene extends Phaser.Scene {
@@ -15,6 +17,7 @@ export class PokerTableScene extends Phaser.Scene {
   private tableFelt!: TableFelt;
   private seats: SeatDisplay[] = [];
   private betChips: BetChip[] = [];
+  private actionBadges: ActionBadge[] = [];
   private communityCards!: CommunityCards;
   private potDisplay!: PotDisplay;
   private dealerButton!: DealerButton;
@@ -53,6 +56,9 @@ export class PokerTableScene extends Phaser.Scene {
       const chip = new BetChip(this, 0, 0);
       chip.setDepth(4);
       this.betChips.push(chip);
+      const badge = new ActionBadge(this, 0, 0);
+      badge.setDepth(6);
+      this.actionBadges.push(badge);
     }
 
     this.communityCards = new CommunityCards(this, 0, 0).setDepth(2);
@@ -154,6 +160,16 @@ export class PokerTableScene extends Phaser.Scene {
       this.betChips[i].resize(betFontSize);
     }
 
+    const badgeFontSize = Math.max(10, Math.round(width * 0.008));
+    for (let i = 0; i < MAX_SEATS; i++) {
+      this.actionBadges[i].setFontSize(badgeFontSize);
+      const anchor = this.seats[i].getBadgeAnchor();
+      this.actionBadges[i].setPosition(
+        this.seatPositions[i].x + anchor.x,
+        this.seatPositions[i].y + anchor.y,
+      );
+    }
+
     const communityCardWidth = Math.max(36, width * 0.051);
     this.communityCards.setPosition(this.cx, this.cy - communityCardWidth * 0.15);
     this.communityCards.resize(communityCardWidth);
@@ -174,6 +190,7 @@ export class PokerTableScene extends Phaser.Scene {
     if (!ts) {
       for (const seat of this.seats) seat.updateSeat(null, null, null, false, false);
       for (const chip of this.betChips) chip.setAmount(0);
+      for (const badge of this.actionBadges) badge.hide();
       this.communityCards.updateCards([]);
       this.potDisplay.updatePots([]);
       this.dealerButton.hide();
@@ -190,6 +207,8 @@ export class PokerTableScene extends Phaser.Scene {
       const player = seatPlayerMap.get(pos);
       const rawCards = ts.seatCards.get(pos) ?? null;
       const isActive = ts.actionPosition === pos;
+      const summary = ts.seatSummaries.get(pos);
+      const isFolded = summary?.status === 'FOLDED';
 
       if (player) {
         const isLocalUser = player.userId === this.currentUserId;
@@ -199,13 +218,20 @@ export class PokerTableScene extends Phaser.Scene {
         const cards = rawCards && isLocalUser
           ? rawCards.map((c) => ({ ...c, showCard: true }))
           : rawCards;
-        this.seats[idx].updateSeat(name, player.chipCount, cards, isActive, false);
+        this.seats[idx].updateSeat(name, player.chipCount, cards, isActive, isFolded);
       } else {
         this.seats[idx].updateSeat(null, null, null, false, false);
       }
 
-      const summary = ts.seatSummaries.get(pos);
       this.betChips[idx].setAmount(summary?.currentBetAmount ?? 0);
+
+      // Drive the action badge from the pure mapping.
+      const badgeState = computeBadgeState(pos, ts);
+      if (player) {
+        this.actionBadges[idx].applyState(badgeState);
+      } else {
+        this.actionBadges[idx].hide();
+      }
     }
 
     this.communityCards.updateCards(ts.communityCards);
