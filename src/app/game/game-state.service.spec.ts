@@ -7,12 +7,15 @@ import { ToasterService } from '../toaster/toaster.service';
 import {
   AdminViewingReplayEvent,
   BlindPostedEvent,
+  ClientGameMessage,
   GameEvent,
   HandStartedEvent,
   PlayerActedEvent,
   PlayerDisconnectedEvent,
   PlayerReconnectedEvent,
   SeatSummary,
+  ShowdownResultEvent,
+  UserMessageEvent,
 } from './game-events';
 
 class FakeWebSocketService {
@@ -348,6 +351,36 @@ describe('GameStateService', () => {
       service.getMessages().subscribe((m) => (messages = m));
       expect(messages.at(-1)?.message).toContain('TheBoss');
       expect(messages.at(-1)?.message).toContain('42');
+    });
+  });
+
+  describe('showdown-result messages', () => {
+    it('tags emitted winner messages with kind="showdown"', () => {
+      ws.events$.next(handStarted([seat(2, 'user-2', 95, 5), seat(3, 'user-3', 90, 10)]));
+
+      ws.events$.next({
+        eventType: 'showdown-result',
+        timestamp: '2026-05-09T00:01:00Z',
+        gameId: GAME_ID,
+        tableId: TABLE_ID,
+        potResults: [
+          {
+            potIndex: 0,
+            potAmount: 50,
+            winners: [
+              { seatPosition: 3, userId: 'user-3', amount: 50, handDescription: 'Pair of Aces' },
+            ],
+          },
+        ],
+      } satisfies ShowdownResultEvent);
+
+      let messages: Array<ClientGameMessage | UserMessageEvent> = [];
+      service.getMessages().subscribe((m) => { messages = m; });
+      const winnerMsg = messages.find(
+        (m) => m.eventType === 'game-message' && (m as ClientGameMessage).kind === 'showdown'
+      );
+      expect(winnerMsg).toBeDefined();
+      expect(winnerMsg!.message).toContain('Pair of Aces');
     });
   });
 });

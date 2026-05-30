@@ -572,7 +572,17 @@ export class GameStateService implements OnDestroy {
         for (const pot of event.potResults) {
           for (const winner of pot.winners) {
             const name = this.getDisplayName(winner.userId);
-            state.messages = [...state.messages, this.createInfoMessage(event.gameId, `${name} won ${LangUtils.formatCurrency(winner.amount)} (${winner.handDescription})`)];
+            const desc = winner.handDescription
+              ? ` (${winner.handDescription})`
+              : '';
+            const msg: ClientGameMessage = {
+              eventType: 'game-message',
+              timestamp: new Date().toISOString(),
+              gameId: event.gameId,
+              message: `${name} won ${LangUtils.formatCurrency(winner.amount)}${desc}`,
+              kind: 'showdown',
+            };
+            state.messages = [...state.messages, msg];
           }
         }
         break;
