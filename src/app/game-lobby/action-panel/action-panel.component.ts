@@ -50,6 +50,22 @@ export class ActionPanelComponent implements OnChanges, OnInit {
     return this.tableState?.callAmount ?? 0;
   }
 
+  /** Chips the player will actually spend to call — capped to their stack so a short stack
+   *  goes all-in instead of trying to commit more chips than they have. */
+  get effectiveCallAmount(): number {
+    return Math.min(this.callAmount, this.playerChipCount);
+  }
+
+  /** True when the player has enough chips to make a legal bet/raise (even an undersized
+   *  all-in shove). When facing a bet, they need at least 1 chip beyond the call; when no
+   *  bet is open, any chips at all suffice. */
+  get canSubmitBet(): boolean {
+    if (this.hasOpenBet) {
+      return this.playerChipCount > this.callAmount;
+    }
+    return this.playerChipCount > 0;
+  }
+
   /** True when there is an outstanding bet on the table (open or matched). Discriminates
    *  Raise from Bet — independent of whether *this* seat still owes chips. */
   get hasOpenBet(): boolean {
@@ -63,7 +79,12 @@ export class ActionPanelComponent implements OnChanges, OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tableState'] || changes['playerChipCount']) {
+      const prevTs = changes['tableState']?.previousValue as TableState | null | undefined;
+      const wasMyTurn = prevTs?.actionPosition === this.seatPosition;
       this.recalculateBetRange();
+      if (this.isMyTurn && !wasMyTurn) {
+        this.betAmount = this.defaultBetAmount;
+      }
     }
   }
 
@@ -73,7 +94,7 @@ export class ActionPanelComponent implements OnChanges, OnInit {
 
   checkOrCall(): void {
     if (this.hasBetToCall) {
-      this.playerAction.emit({ type: 'call', amount: this.callAmount });
+      this.playerAction.emit({ type: 'call', amount: this.effectiveCallAmount });
     } else {
       this.playerAction.emit({ type: 'check' });
     }
@@ -103,6 +124,11 @@ export class ActionPanelComponent implements OnChanges, OnInit {
     this.betAmount = this.maxBet;
   }
 
+  bumpBet(direction: 1 | -1): void {
+    const bb = this.tableState?.bigBlindAmount || 1;
+    this.betAmount = this.clampBet(this.betAmount + direction * bb);
+  }
+
   toggleStepUnit(): void {
     this.stepUnit = this.stepUnit === 'BB' ? 'SB' : 'BB';
     this.persistStepUnit(this.stepUnit);
@@ -120,15 +146,32 @@ export class ActionPanelComponent implements OnChanges, OnInit {
     const blind = this.stepUnit === 'BB' ? ts.bigBlindAmount : ts.smallBlindAmount;
     this.step = blind || 1;
 
+    // The wire-level bet/raise amount is the total "to" level for this round, not the increment.
+    // For a raise this means `currentBet + minimumRaise`; the player's chip cost is whatever
+    // they haven't already committed this round (their seat's currentBetAmount). The all-in
+    // ceiling is therefore stack + chips already on the felt.
+    const mySeatCommitted = this.mySeatCurrentBetAmount;
     if (this.hasOpenBet) {
-      this.minBet = ts.minimumRaise || ts.currentBet * 2;
+      const minRaiseIncrement = ts.minimumRaise || ts.bigBlindAmount || 1;
+      this.minBet = ts.currentBet + minRaiseIncrement;
     } else {
       this.minBet = ts.bigBlindAmount || 1;
     }
 
-    this.maxBet = this.playerChipCount;
+    this.maxBet = this.playerChipCount + mySeatCommitted;
     this.minBet = Math.min(this.minBet, this.maxBet);
-    this.betAmount = this.clampBet(this.betAmount || this.minBet);
+    this.betAmount = this.clampBet(this.betAmount || this.defaultBetAmount);
+  }
+
+  /** Default seed for the bet/raise input — the smallest legal action, clamped to the player's
+   *  stack so a short stack auto-shoves rather than producing an illegal value. */
+  private get defaultBetAmount(): number {
+    return this.minBet;
+  }
+
+  private get mySeatCurrentBetAmount(): number {
+    if (this.seatPosition == null) return 0;
+    return this.tableState?.seatSummaries.get(this.seatPosition)?.currentBetAmount ?? 0;
   }
 
   private clampBet(value: number): number {

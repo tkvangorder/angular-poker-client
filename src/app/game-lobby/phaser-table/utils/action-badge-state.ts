@@ -28,6 +28,23 @@ export interface BadgeState {
 const NONE: BadgeState = { kind: 'none', line1: '', line2: '', actionSeq: 0 };
 const MAX_DESC_CHARS = 28;
 
+// Vivid, high-contrast colors against the dark pod background. CHECK gets a
+// distinct hue so it doesn't read as the default name color (white).
+const KIND_TEXT_COLORS: Record<BadgeKind, string> = {
+  'none':   '#ffffff',
+  'fold':   '#ff5577',
+  'check':  '#9eff80',
+  'call':   '#5cb8ff',
+  'bet':    '#ffd54f',
+  'raise':  '#ffb74d',
+  'all-in': '#ffeb3b',
+  'winner': '#ffeb3b',
+};
+
+export function badgeTextColor(kind: BadgeKind): string {
+  return KIND_TEXT_COLORS[kind];
+}
+
 function formatCents(cents: number): string {
   return '$' + (cents / 100).toFixed(2);
 }

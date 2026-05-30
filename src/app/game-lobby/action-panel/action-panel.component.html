@@ -6,20 +6,34 @@
   <div class="flex items-center gap-2 flex-wrap">
     <div class="join">
       <button class="btn btn-xs join-item" [disabled]="!isMyTurn" (click)="setMin()">Min</button>
-      <button class="btn btn-xs join-item" [disabled]="!isMyTurn" (click)="setHalfPot()">&frac12; Pot</button>
+      <button class="btn btn-xs join-item" [disabled]="!isMyTurn" (click)="setHalfPot()">½ Pot</button>
       <button class="btn btn-xs join-item" [disabled]="!isMyTurn" (click)="setFullPot()">Pot</button>
       <button class="btn btn-xs join-item" [disabled]="!isMyTurn" (click)="setMax()">Max</button>
     </div>
 
-    <input
-      type="number"
-      class="input input-bordered input-xs w-24 text-right font-mono"
-      [min]="minBet"
-      [max]="maxBet"
-      [step]="step"
-      [(ngModel)]="betAmount"
-      [disabled]="!isMyTurn"
-    />
+    <div class="join">
+      <button
+        type="button"
+        class="btn btn-xs join-item"
+        [disabled]="!isMyTurn || betAmount <= minBet"
+        (click)="bumpBet(-1)"
+        title="Decrease bet by 1 BB">−</button>
+      <input
+        type="number"
+        class="input input-bordered input-xs w-24 text-right font-mono join-item"
+        [min]="minBet"
+        [max]="maxBet"
+        [step]="step"
+        [(ngModel)]="betAmount"
+        [disabled]="!isMyTurn"
+      />
+      <button
+        type="button"
+        class="btn btn-xs join-item"
+        [disabled]="!isMyTurn || betAmount >= maxBet"
+        (click)="bumpBet(1)"
+        title="Increase bet by 1 BB">+</button>
+    </div>
 
     <input
       type="range"
@@ -49,13 +63,13 @@
 
     <button class="btn btn-primary" [disabled]="!isMyTurn" (click)="checkOrCall()">
       @if (hasBetToCall) {
-        Call {{ formatCents(callAmount) }}
+        Call {{ formatCents(effectiveCallAmount) }}
       } @else {
         Check
       }
     </button>
 
-    <button class="btn btn-success" [disabled]="!isMyTurn" (click)="submitBet()">
+    <button class="btn btn-success" [disabled]="!isMyTurn || !canSubmitBet" (click)="submitBet()">
       @if (hasOpenBet) {
         Raise To {{ formatCents(betAmount) }}
       } @else {

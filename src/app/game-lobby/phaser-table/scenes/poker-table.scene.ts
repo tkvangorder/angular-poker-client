@@ -9,8 +9,10 @@ import { PotDisplay } from '../game-objects/pot-display';
 import { DealerButton } from '../game-objects/dealer-button';
 import { BetChip } from '../game-objects/bet-chip';
 import { ActionBadge } from '../game-objects/action-badge';
-import { computeBadgeState } from '../utils/action-badge-state';
+import { computeBadgeState, badgeTextColor } from '../utils/action-badge-state';
 import { getAllSeatPositions, MAX_SEATS, SeatPosition } from '../utils/seat-layout';
+
+const ACTION_OVERLAY_MS = 2000;
 
 export class PokerTableScene extends Phaser.Scene {
   private bridge!: PhaserBridgeService;
@@ -38,6 +40,12 @@ export class PokerTableScene extends Phaser.Scene {
   private timerDeadlineMs: number | null = null;
   private timerTotalMs = 30000;
 
+  // Per-seat action overlay (transient name-replacement for fold/check/call/etc).
+  // 'winner' continues to use ActionBadge (sticky, 2-line, pulse).
+  private actionOverlays: ({ text: string; color: string } | null)[] = [];
+  private actionOverlayTimers: (Phaser.Time.TimerEvent | null)[] = [];
+  private lastSeenActionSeq: number[] = [];
+
   constructor() {
     super({ key: 'PokerTableScene' });
   }
@@ -59,6 +67,9 @@ export class PokerTableScene extends Phaser.Scene {
       const badge = new ActionBadge(this, 0, 0);
       badge.setDepth(6);
       this.actionBadges.push(badge);
+      this.actionOverlays.push(null);
+      this.actionOverlayTimers.push(null);
+      this.lastSeenActionSeq.push(-1);
     }
 
     this.communityCards = new CommunityCards(this, 0, 0).setDepth(2);
@@ -195,6 +206,7 @@ export class PokerTableScene extends Phaser.Scene {
     const players = this.currentPlayers;
 
     if (!ts) {
+      this.clearAllActionOverlays();
       for (const seat of this.seats) seat.updateSeat(null, null, null, false, false);
       for (const chip of this.betChips) chip.setAmount(0);
       for (const badge of this.actionBadges) badge.hide();
@@ -217,6 +229,39 @@ export class PokerTableScene extends Phaser.Scene {
       const summary = ts.seatSummaries.get(pos);
       const isFolded = summary?.status === 'FOLDED';
 
+      this.betChips[idx].setAmount(summary?.currentBetAmount ?? 0);
+
+      // Drive the action badge / overlay from the pure mapping.
+      const badgeState = computeBadgeState(pos, ts);
+      if (player && badgeState.kind === 'winner') {
+        this.actionBadges[idx].applyState(badgeState);
+      } else {
+        this.actionBadges[idx].hide();
+      }
+
+      // For transient action kinds (fold/check/call/bet/raise/all-in),
+      // temporarily replace the seat's name with the action message.
+      if (
+        player &&
+        badgeState.kind !== 'none' &&
+        badgeState.kind !== 'winner' &&
+        this.lastSeenActionSeq[idx] !== badgeState.actionSeq
+      ) {
+        this.lastSeenActionSeq[idx] = badgeState.actionSeq;
+        this.actionOverlays[idx] = {
+          text: badgeState.line1,
+          color: badgeTextColor(badgeState.kind),
+        };
+        if (this.actionOverlayTimers[idx]) {
+          this.actionOverlayTimers[idx]!.remove(false);
+        }
+        this.actionOverlayTimers[idx] = this.time.delayedCall(ACTION_OVERLAY_MS, () => {
+          this.actionOverlays[idx] = null;
+          this.actionOverlayTimers[idx] = null;
+          this.renderState();
+        });
+      }
+
       if (player) {
         const isLocalUser = player.userId === this.currentUserId;
         const name = isLocalUser ? 'You' : player.displayName;
@@ -225,19 +270,11 @@ export class PokerTableScene extends Phaser.Scene {
         const cards = rawCards && isLocalUser
           ? rawCards.map((c) => ({ ...c, showCard: true }))
           : rawCards;
-        this.seats[idx].updateSeat(name, player.chipCount, cards, isActive, isFolded);
+        this.seats[idx].updateSeat(
+          name, player.chipCount, cards, isActive, isFolded, this.actionOverlays[idx],
+        );
       } else {
         this.seats[idx].updateSeat(null, null, null, false, false);
-      }
-
-      this.betChips[idx].setAmount(summary?.currentBetAmount ?? 0);
-
-      // Drive the action badge from the pure mapping.
-      const badgeState = computeBadgeState(pos, ts);
-      if (player) {
-        this.actionBadges[idx].applyState(badgeState);
-      } else {
-        this.actionBadges[idx].hide();
       }
     }
 
@@ -260,7 +297,19 @@ export class PokerTableScene extends Phaser.Scene {
 
   shutdown(): void {
     for (const badge of this.actionBadges) badge.hide();
+    this.clearAllActionOverlays();
     for (const sub of this.subscriptions) sub.unsubscribe();
     this.subscriptions = [];
+  }
+
+  private clearAllActionOverlays(): void {
+    for (let i = 0; i < this.actionOverlayTimers.length; i++) {
+      if (this.actionOverlayTimers[i]) {
+        this.actionOverlayTimers[i]!.remove(false);
+        this.actionOverlayTimers[i] = null;
+      }
+      this.actionOverlays[i] = null;
+      this.lastSeenActionSeq[i] = -1;
+    }
   }
 }

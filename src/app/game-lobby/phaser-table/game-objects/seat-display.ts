@@ -156,12 +156,13 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     cards: SeatCard[] | null,
     isActive: boolean,
     isFolded: boolean,
+    actionOverlay: { text: string; color: string } | null = null,
   ): void {
     if (!playerName) {
       this.renderEmpty();
       return;
     }
-    this.renderOccupied(playerName, chipCount, cards, isActive, isFolded);
+    this.renderOccupied(playerName, chipCount, cards, isActive, isFolded, actionOverlay);
   }
 
   setTimer(frac: number): void {
@@ -212,6 +213,7 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     cards: SeatCard[] | null,
     isActive: boolean,
     isFolded: boolean,
+    actionOverlay: { text: string; color: string } | null,
   ): void {
     this.setVisible(true);
     this.emptyRing.clear();
@@ -222,11 +224,22 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     const stackFontSize = Math.max(9, s.stackSize);
 
     this.nameText.setFontSize(nameFontSize);
-    this.nameText.setText(this.truncateName(playerName));
+    // Measure the widest realistic action message so the pod reserves space
+    // for it. Without this floor, the pod resizes when an overlay swaps in.
+    this.nameText.setText('RAISE → $9999.99');
+    const reservedTextW = this.nameText.width;
+
+    if (actionOverlay) {
+      this.nameText.setText(actionOverlay.text);
+      this.nameText.setColor(actionOverlay.color);
+    } else {
+      this.nameText.setText(this.truncateName(playerName));
+      this.nameText.setColor(NAME_COLOR);
+    }
     this.stackText.setFontSize(stackFontSize);
     this.stackText.setText(chipCount != null ? this.formatChips(chipCount) : '');
 
-    const textW = Math.max(this.nameText.width, this.stackText.width);
+    const textW = Math.max(this.nameText.width, this.stackText.width, reservedTextW);
     const holeW = s.holeWidth;
     const holeH = Math.round(holeW * 1.4);
     const holeGap = 3;

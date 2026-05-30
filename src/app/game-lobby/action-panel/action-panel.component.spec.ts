@@ -131,11 +131,11 @@ describe('ActionPanelComponent', () => {
   });
 
   describe('preset bet sizing', () => {
-    it('Min snaps to the minimum allowed bet', () => {
+    it('Min snaps to the minimum legal raise-to amount (currentBet + minimumRaise)', () => {
       const ts = tableState({ currentBet: 50, callAmount: 25, minimumRaise: 100 });
       setInputs(fixture, cmp, ts, 1000, 2);
       cmp.setMin();
-      expect(cmp.betAmount).toBe(100);
+      expect(cmp.betAmount).toBe(150);
     });
 
     it('½ Pot snaps to half the total pot, clamped to legal range', () => {
@@ -169,6 +169,160 @@ describe('ActionPanelComponent', () => {
       setInputs(fixture, cmp, ts, 750, 2);
       cmp.setMax();
       expect(cmp.betAmount).toBe(750);
+    });
+  });
+
+  describe('raise sizing', () => {
+    it('the reported bug: blinds 25/50, preflop default raise is 100 (not 50)', () => {
+      // BB has posted 50; UTG is first to act facing currentBet=50, minimumRaise=50.
+      const ts = tableState({
+        smallBlindAmount: 25,
+        bigBlindAmount: 50,
+        currentBet: 50,
+        callAmount: 50,
+        minimumRaise: 50,
+        actionPosition: 4,
+      });
+      setInputs(fixture, cmp, ts, 1000, 4);
+      expect(cmp.betAmount).toBe(100);
+    });
+
+    it('minimum raise-to is currentBet + minimumRaise', () => {
+      const ts = tableState({
+        currentBet: 200,
+        callAmount: 200,
+        minimumRaise: 100,
+        actionPosition: 3,
+      });
+      setInputs(fixture, cmp, ts, 1000, 3);
+      expect(cmp.minBet).toBe(300);
+      expect(cmp.betAmount).toBe(300);
+    });
+
+    it('max raise-to includes chips already committed this round (BB all-in)', () => {
+      // Big blind seat (3) has 50 already on the felt and 950 behind. All-in raise-to = 1000.
+      const ts = tableState({
+        currentBet: 50,
+        callAmount: 0,
+        minimumRaise: 50,
+        actionPosition: 3,
+        seatSummaries: new Map([
+          [3, { seatPosition: 3, userId: 'u', status: 'ACTIVE' as const, chipCount: 950, currentBetAmount: 50 }],
+        ]),
+      });
+      setInputs(fixture, cmp, ts, 950, 3);
+      expect(cmp.maxBet).toBe(1000);
+      cmp.setMax();
+      expect(cmp.betAmount).toBe(1000);
+    });
+
+    it('collapses min raise to all-in when the player cannot make the min raise', () => {
+      // Min legal raise-to would be 50 + 200 = 250; player only has 150 behind and nothing in.
+      const ts = tableState({
+        currentBet: 50,
+        callAmount: 50,
+        minimumRaise: 200,
+        actionPosition: 3,
+      });
+      setInputs(fixture, cmp, ts, 150, 3);
+      expect(cmp.maxBet).toBe(150);
+      expect(cmp.minBet).toBe(150);
+      expect(cmp.betAmount).toBe(150);
+    });
+
+    it('resets the default to the smallest legal raise when action transitions to this seat', () => {
+      const tsOther = tableState({
+        currentBet: 50,
+        callAmount: 50,
+        minimumRaise: 50,
+        actionPosition: 2, // someone else acts
+      });
+      setInputs(fixture, cmp, tsOther, 1000, 3);
+
+      cmp.betAmount = 777;
+      const tsMine = tableState({
+        currentBet: 50,
+        callAmount: 50,
+        minimumRaise: 50,
+        actionPosition: 3,
+      });
+      cmp.tableState = tsMine;
+      cmp.ngOnChanges({
+        tableState: new SimpleChange(tsOther, tsMine, false),
+      });
+      expect(cmp.betAmount).toBe(100);
+    });
+
+    it("preserves the user's bet adjustment across event ticks during this seat's turn", () => {
+      const tsMine = tableState({
+        currentBet: 50,
+        callAmount: 50,
+        minimumRaise: 50,
+        actionPosition: 3,
+      });
+      setInputs(fixture, cmp, tsMine, 1000, 3);
+      cmp.betAmount = 250; // user adjusted
+
+      const tsMine2 = tableState({
+        currentBet: 50,
+        callAmount: 50,
+        minimumRaise: 50,
+        actionPosition: 3,
+      });
+      cmp.tableState = tsMine2;
+      cmp.ngOnChanges({
+        tableState: new SimpleChange(tsMine, tsMine2, false),
+      });
+      expect(cmp.betAmount).toBe(250);
+    });
+  });
+
+  describe('short stack vs current bet', () => {
+    it('caps the call amount to the player stack when chips < callAmount', () => {
+      const ts = tableState({ currentBet: 200, callAmount: 200, minimumRaise: 50, actionPosition: 3 });
+      setInputs(fixture, cmp, ts, 75, 3);
+      expect(cmp.effectiveCallAmount).toBe(75);
+      cmp.checkOrCall();
+      expect(emitted).toEqual([{ type: 'call', amount: 75 }]);
+    });
+
+    it('emits the full call amount when the player can cover it', () => {
+      const ts = tableState({ currentBet: 200, callAmount: 200, minimumRaise: 50, actionPosition: 3 });
+      setInputs(fixture, cmp, ts, 1000, 3);
+      cmp.checkOrCall();
+      expect(emitted).toEqual([{ type: 'call', amount: 200 }]);
+    });
+
+    it('disables the bet/raise button when chips do not exceed the call amount', () => {
+      // Player has exactly the call amount — calling goes all-in, raising is impossible.
+      const ts = tableState({ currentBet: 200, callAmount: 200, minimumRaise: 50, actionPosition: 3 });
+      setInputs(fixture, cmp, ts, 200, 3);
+      expect(cmp.canSubmitBet).toBe(false);
+
+      // Even less — still can't raise.
+      setInputs(fixture, cmp, ts, 75, 3);
+      expect(cmp.canSubmitBet).toBe(false);
+    });
+
+    it('allows raising when the player has at least one chip beyond the call', () => {
+      const ts = tableState({ currentBet: 200, callAmount: 200, minimumRaise: 50, actionPosition: 3 });
+      setInputs(fixture, cmp, ts, 201, 3);
+      expect(cmp.canSubmitBet).toBe(true);
+    });
+
+    it('allows betting whenever the player has any chips and no bet is open', () => {
+      const ts = tableState({
+        phase: 'FLOP_BETTING',
+        currentBet: 0,
+        callAmount: 0,
+        minimumRaise: 50,
+        actionPosition: 3,
+      });
+      setInputs(fixture, cmp, ts, 1, 3);
+      expect(cmp.canSubmitBet).toBe(true);
+
+      setInputs(fixture, cmp, ts, 0, 3);
+      expect(cmp.canSubmitBet).toBe(false);
     });
   });
 
