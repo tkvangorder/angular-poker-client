@@ -252,6 +252,7 @@ export class PokerTableScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    for (const badge of this.actionBadges) badge.hide();
     for (const sub of this.subscriptions) sub.unsubscribe();
     this.subscriptions = [];
   }
