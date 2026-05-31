@@ -10,6 +10,7 @@ export class BetChip extends Phaser.GameObjects.Container {
   private bg: Phaser.GameObjects.Graphics;
   private text: Phaser.GameObjects.Text;
   private fontSize = 10;
+  private podW = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
@@ -45,9 +46,15 @@ export class BetChip extends Phaser.GameObjects.Container {
     this.redraw();
   }
 
+  /** Half-width of the visible pod, in pixels, for external placement (e.g. dealer button). 0 when hidden. */
+  getHalfWidth(): number {
+    return this.visible ? this.podW / 2 : 0;
+  }
+
   private redraw(): void {
     const w = this.text.width + PAD_X * 2;
     const h = this.text.height + PAD_Y * 2;
+    this.podW = w;
     this.bg.clear();
     this.bg.fillStyle(COLOR_1, 1);
     this.bg.fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);

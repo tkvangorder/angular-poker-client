@@ -35,6 +35,7 @@ export class PokerTableScene extends Phaser.Scene {
   private tableRx = 0;
   private tableRy = 0;
   private seatPositions: SeatPosition[] = [];
+  private dealerButtonRadius = 10;
 
   // Timer tracking
   private timerDeadlineMs: number | null = null;
@@ -75,7 +76,9 @@ export class PokerTableScene extends Phaser.Scene {
     this.communityCards = new CommunityCards(this, 0, 0).setDepth(2);
     this.potDisplay = new PotDisplay(this, 0, 0).setDepth(2);
     this.dealerButton = new DealerButton(this);
-    this.dealerButton.setDepth(4);
+    // Above seat pods (depth 5) and bet chips (depth 4) — the dealer marker is
+    // always drawn on top so it can sit beside the bet pod without being occluded.
+    this.dealerButton.setDepth(7);
 
     this.layoutAll(this.scale.width, this.scale.height);
 
@@ -198,7 +201,8 @@ export class PokerTableScene extends Phaser.Scene {
     const amountSize = Math.max(13, Math.round(width * 0.011));
     this.potDisplay.resize(chipSize, labelSize, amountSize);
 
-    this.dealerButton.resize(Math.max(8, width * 0.008));
+    this.dealerButtonRadius = Math.max(8, width * 0.008);
+    this.dealerButton.resize(this.dealerButtonRadius);
   }
 
   private renderState(): void {
@@ -282,13 +286,23 @@ export class PokerTableScene extends Phaser.Scene {
     this.potDisplay.updatePots(ts.pots);
 
     if (ts.dealerPosition != null && ts.dealerPosition >= 1 && ts.dealerPosition <= MAX_SEATS) {
-      const seatPos = this.seatPositions[ts.dealerPosition - 1];
+      const dealerIdx = ts.dealerPosition - 1;
+      const seatPos = this.seatPositions[dealerIdx];
       const dx = this.cx - seatPos.x;
       const dy = this.cy - seatPos.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const dist = Math.hypot(dx, dy);
       if (dist > 0) {
-        const t = 0.3;
-        this.dealerButton.show(seatPos.x + dx * t, seatPos.y + dy * t);
+        // Anchor on the bet line (same fraction the bet chip uses), then push
+        // further toward the table center — clear of the bet pod — so the button
+        // always lands on the felt and never slides over the player's pod.
+        const t = 0.25;
+        const ax = seatPos.x + dx * t;
+        const ay = seatPos.y + dy * t;
+        const inwardX = dx / dist;
+        const inwardY = dy / dist;
+        const clearance =
+          this.betChips[dealerIdx].getHalfWidth() + this.dealerButtonRadius + 4;
+        this.dealerButton.show(ax + inwardX * clearance, ay + inwardY * clearance);
       }
     } else {
       this.dealerButton.hide();
