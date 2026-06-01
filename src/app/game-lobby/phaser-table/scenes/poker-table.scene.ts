@@ -2,26 +2,30 @@ import Phaser from 'phaser';
 import { Subscription } from 'rxjs';
 import { PhaserBridgeService } from '../phaser-bridge.service';
 import { TableState, PlayerState } from '../../../game/game-state.service';
+import { PotResult } from '../../../game/game-events';
 import { TableFelt } from '../game-objects/table-felt';
 import { SeatDisplay } from '../game-objects/seat-display';
 import { CommunityCards } from '../game-objects/community-cards';
 import { PotDisplay } from '../game-objects/pot-display';
 import { DealerButton } from '../game-objects/dealer-button';
 import { BetChip } from '../game-objects/bet-chip';
-import { ActionBadge } from '../game-objects/action-badge';
+import { WinnerBanner } from '../game-objects/winner-banner';
+import { buildShowdownStages, formatStageLine1, formatStageLine2, ShowdownStage } from '../utils/showdown-sequence';
+import { matchWinningCards } from '../utils/card-match';
 import { computeBadgeState, badgeTextColor } from '../utils/action-badge-state';
 import { getAllSeatPositions, MAX_SEATS, SeatPosition } from '../utils/seat-layout';
 
 const ACTION_OVERLAY_MS = 2000;
+const SHOWDOWN_STAGE_MS = 4000;
 
 export class PokerTableScene extends Phaser.Scene {
   private bridge!: PhaserBridgeService;
   private tableFelt!: TableFelt;
   private seats: SeatDisplay[] = [];
   private betChips: BetChip[] = [];
-  private actionBadges: ActionBadge[] = [];
   private communityCards!: CommunityCards;
   private potDisplay!: PotDisplay;
+  private winnerBanner!: WinnerBanner;
   private dealerButton!: DealerButton;
 
   private subscriptions: Subscription[] = [];
@@ -42,10 +46,16 @@ export class PokerTableScene extends Phaser.Scene {
   private timerTotalMs = 30000;
 
   // Per-seat action overlay (transient name-replacement for fold/check/call/etc).
-  // 'winner' continues to use ActionBadge (sticky, 2-line, pulse).
   private actionOverlays: ({ text: string; color: string } | null)[] = [];
   private actionOverlayTimers: (Phaser.Time.TimerEvent | null)[] = [];
   private lastSeenActionSeq: number[] = [];
+
+  // Showdown presentation: stages cycle one winning hand at a time.
+  private showdownStages: ShowdownStage[] = [];
+  private showdownStageIndex = 0;
+  private showdownTimer: Phaser.Time.TimerEvent | null = null;
+  /** Identity guard: the potResults object currently being presented, or null. */
+  private presentedPotResults: PotResult[] | null = null;
 
   constructor() {
     super({ key: 'PokerTableScene' });
@@ -65,9 +75,6 @@ export class PokerTableScene extends Phaser.Scene {
       const chip = new BetChip(this, 0, 0);
       chip.setDepth(4);
       this.betChips.push(chip);
-      const badge = new ActionBadge(this, 0, 0);
-      badge.setDepth(6);
-      this.actionBadges.push(badge);
       this.actionOverlays.push(null);
       this.actionOverlayTimers.push(null);
       this.lastSeenActionSeq.push(-1);
@@ -75,6 +82,7 @@ export class PokerTableScene extends Phaser.Scene {
 
     this.communityCards = new CommunityCards(this, 0, 0).setDepth(2);
     this.potDisplay = new PotDisplay(this, 0, 0).setDepth(2);
+    this.winnerBanner = new WinnerBanner(this, 0, 0).setDepth(10);
     this.dealerButton = new DealerButton(this);
     // Above seat pods (depth 5) and bet chips (depth 4) — the dealer marker is
     // always drawn on top so it can sit beside the bet pod without being occluded.
@@ -130,7 +138,24 @@ export class PokerTableScene extends Phaser.Scene {
       this.timerDeadlineMs = null;
     }
 
+    this.updateShowdownPresentation(state);
     this.renderState();
+  }
+
+  /**
+   * Start the showdown sequence when potResults first appears, and abort it the
+   * moment they clear (which happens on the next hand-started). Uses object
+   * identity so unrelated state updates within the same showdown don't re-trigger.
+   */
+  private updateShowdownPresentation(state: TableState | null): void {
+    const potResults = state?.potResults ?? null;
+    if (potResults && potResults !== this.presentedPotResults) {
+      this.presentedPotResults = potResults;
+      this.startShowdown(potResults);
+    } else if (!potResults && this.presentedPotResults) {
+      this.presentedPotResults = null;
+      this.abortShowdown();
+    }
   }
 
   private layoutAll(width: number, height: number): void {
@@ -174,23 +199,6 @@ export class PokerTableScene extends Phaser.Scene {
       this.betChips[i].resize(betFontSize);
     }
 
-    const badgeFontSize = Math.max(10, Math.round(width * 0.008));
-    const badgeGap = Math.max(14, Math.round(width * 0.012));
-    for (let i = 0; i < MAX_SEATS; i++) {
-      this.actionBadges[i].setFontSize(badgeFontSize);
-      const sx = this.seatPositions[i].x;
-      const sy = this.seatPositions[i].y;
-      // Radial-outward unit vector from table center to this seat.
-      const ox = sx - this.cx;
-      const oy = sy - this.cy;
-      const mag = Math.hypot(ox, oy) || 1;
-      const ux = ox / mag;
-      const uy = oy / mag;
-      const podHalfH = this.seats[i].getPodHalfHeight();
-      const outwardDist = podHalfH + badgeGap;
-      this.actionBadges[i].setPosition(sx + ux * outwardDist, sy + uy * outwardDist);
-    }
-
     const communityCardWidth = Math.max(36, width * 0.051);
     this.communityCards.setPosition(this.cx, this.cy - communityCardWidth * 0.15);
     this.communityCards.resize(communityCardWidth);
@@ -203,6 +211,11 @@ export class PokerTableScene extends Phaser.Scene {
 
     this.dealerButtonRadius = Math.max(8, width * 0.008);
     this.dealerButton.resize(this.dealerButtonRadius);
+
+    this.winnerBanner.setPosition(this.cx, this.cy - this.tableRy * 0.62);
+    const bannerLine1Size = Math.max(16, Math.round(width * 0.014));
+    const bannerLine2Size = Math.max(12, Math.round(width * 0.01));
+    this.winnerBanner.resize(bannerLine1Size, bannerLine2Size);
   }
 
   private renderState(): void {
@@ -211,9 +224,9 @@ export class PokerTableScene extends Phaser.Scene {
 
     if (!ts) {
       this.clearAllActionOverlays();
+      this.abortShowdown();
       for (const seat of this.seats) seat.updateSeat(null, null, null, false, false);
       for (const chip of this.betChips) chip.setAmount(0);
-      for (const badge of this.actionBadges) badge.hide();
       this.communityCards.updateCards([]);
       this.potDisplay.updatePots([]);
       this.dealerButton.hide();
@@ -235,20 +248,14 @@ export class PokerTableScene extends Phaser.Scene {
 
       this.betChips[idx].setAmount(summary?.currentBetAmount ?? 0);
 
-      // Drive the action badge / overlay from the pure mapping.
+      // Drive the transient action name-swap overlay from the pure mapping.
       const badgeState = computeBadgeState(pos, ts);
-      if (player && badgeState.kind === 'winner') {
-        this.actionBadges[idx].applyState(badgeState);
-      } else {
-        this.actionBadges[idx].hide();
-      }
 
       // For transient action kinds (fold/check/call/bet/raise/all-in),
       // temporarily replace the seat's name with the action message.
       if (
         player &&
         badgeState.kind !== 'none' &&
-        badgeState.kind !== 'winner' &&
         this.lastSeenActionSeq[idx] !== badgeState.actionSeq
       ) {
         this.lastSeenActionSeq[idx] = badgeState.actionSeq;
@@ -309,8 +316,100 @@ export class PokerTableScene extends Phaser.Scene {
     }
   }
 
+  private startShowdown(potResults: PotResult[]): void {
+    this.abortShowdown();
+    this.showdownStages = buildShowdownStages(potResults);
+    this.showdownStageIndex = 0;
+    if (this.showdownStages.length === 0) return;
+    this.presentStage(0);
+    this.scheduleNextStage();
+  }
+
+  private scheduleNextStage(): void {
+    this.showdownTimer = this.time.delayedCall(SHOWDOWN_STAGE_MS, () => {
+      this.showdownStageIndex++;
+      if (this.showdownStageIndex < this.showdownStages.length) {
+        this.presentStage(this.showdownStageIndex);
+        this.scheduleNextStage();
+      } else {
+        this.fadeOutShowdown();
+      }
+    });
+  }
+
+  private presentStage(index: number): void {
+    const ts = this.currentTableState;
+    if (!ts) return;
+    const stage = this.showdownStages[index];
+    if (!stage) return;
+
+    const name = this.displayNameForSeat(stage.userId);
+    this.winnerBanner.show(formatStageLine1(stage, name), formatStageLine2(stage));
+
+    // Reset any prior stage's highlights before applying this one.
+    this.clearShowdownHighlights();
+
+    if (stage.winningCards.length === 0) {
+      // Fold-win: no cards to highlight — banner + seat glow only.
+      if (stage.seatPosition >= 1 && stage.seatPosition <= MAX_SEATS) {
+        this.seats[stage.seatPosition - 1].setWinnerHighlight(true);
+      }
+      return;
+    }
+
+    const targets = matchWinningCards(
+      stage.winningCards,
+      ts.communityCards,
+      ts.seatCards.get(stage.seatPosition) ?? null,
+    );
+
+    this.communityCards.applyShowdownHighlight(targets.communityIndices);
+    for (let pos = 1; pos <= MAX_SEATS; pos++) {
+      const seat = this.seats[pos - 1];
+      if (pos === stage.seatPosition) {
+        seat.applyShowdownHighlight(targets.holeSeatCardIndices);
+        seat.setWinnerHighlight(true);
+      } else {
+        // Dim other seats' (revealed) hole cards for contrast.
+        seat.applyShowdownHighlight([]);
+      }
+    }
+  }
+
+  private fadeOutShowdown(): void {
+    this.showdownTimer = null;
+    this.winnerBanner.fadeOut();
+    this.clearShowdownHighlights();
+  }
+
+  private abortShowdown(): void {
+    if (this.showdownTimer) {
+      this.showdownTimer.remove(false);
+      this.showdownTimer = null;
+    }
+    this.showdownStages = [];
+    this.showdownStageIndex = 0;
+    this.winnerBanner.hide();
+    this.clearShowdownHighlights();
+  }
+
+  private clearShowdownHighlights(): void {
+    this.communityCards.applyShowdownHighlight(null);
+    for (const seat of this.seats) {
+      seat.applyShowdownHighlight(null);
+      seat.setWinnerHighlight(false);
+    }
+  }
+
+  private displayNameForSeat(userId: string): string {
+    if (userId === this.currentUserId) return 'You';
+    const player = this.currentPlayers.find((p) => p.userId === userId);
+    return player?.displayName ?? userId;
+  }
+
   shutdown(): void {
-    for (const badge of this.actionBadges) badge.hide();
+    this.abortShowdown();
+    this.presentedPotResults = null;
     this.clearAllActionOverlays();
     for (const sub of this.subscriptions) sub.unsubscribe();
     this.subscriptions = [];
