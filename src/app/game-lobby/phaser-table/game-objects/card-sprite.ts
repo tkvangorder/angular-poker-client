@@ -41,7 +41,12 @@ const RANK_FONT = 'Georgia, serif';
 const BACK_COLOR_1 = 0x1a5c8a;
 const BACK_COLOR_2 = 0x0e3d5e;
 
+const HIGHLIGHT_COLOR = 0xf5d678;
+const DIM_ALPHA = 0.4;
+const HIGHLIGHT_SCALE = 1.08;
+
 export class CardSprite extends Phaser.GameObjects.Container {
+  private highlight: Phaser.GameObjects.Graphics;
   private shadow: Phaser.GameObjects.Graphics;
   private bg: Phaser.GameObjects.Graphics;
   private rankText: Phaser.GameObjects.Text;
@@ -49,10 +54,14 @@ export class CardSprite extends Phaser.GameObjects.Container {
   private cardWidth = 40;
   private cardHeight = 56;
   private cornerRadius = 5;
+  private highlightTween: Phaser.Tweens.Tween | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
     scene.add.existing(this);
+
+    this.highlight = new Phaser.GameObjects.Graphics(scene);
+    this.add(this.highlight);
 
     this.shadow = new Phaser.GameObjects.Graphics(scene);
     this.add(this.shadow);
@@ -108,6 +117,43 @@ export class CardSprite extends Phaser.GameObjects.Container {
         tintable.setTint(color);
       }
     });
+  }
+
+  /** Gold pulsing glow + slight scale-up to mark a winning card. */
+  setHighlight(on: boolean): void {
+    if (this.highlightTween) {
+      this.highlightTween.stop();
+      this.highlightTween = null;
+    }
+    this.highlight.clear();
+    if (!on) {
+      this.setScale(1);
+      return;
+    }
+    const w = this.cardWidth;
+    const h = this.cardHeight;
+    const r = this.cornerRadius;
+    const pad = Math.max(3, Math.round(w * 0.12));
+    for (let g = 0; g < 3; g++) {
+      const a = 0.5 * (1 - g / 3);
+      const gp = pad * (g + 1);
+      this.highlight.fillStyle(HIGHLIGHT_COLOR, a);
+      this.highlight.fillRoundedRect(-w / 2 - gp, -h / 2 - gp, w + gp * 2, h + gp * 2, r + gp);
+    }
+    this.setScale(HIGHLIGHT_SCALE);
+    this.highlightTween = this.scene.tweens.add({
+      targets: this.highlight,
+      alpha: { from: 1, to: 0.55 },
+      duration: 700,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+  }
+
+  /** Fade a non-winning card so the highlighted ones stand out. */
+  setDimmed(on: boolean): void {
+    this.setAlpha(on ? DIM_ALPHA : 1);
   }
 
   setCardSize(width: number): void {
