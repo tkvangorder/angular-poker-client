@@ -76,13 +76,16 @@ winner's `winningCards`.
 
 ### Timing & lifecycle
 
-- Each stage holds **~4s**, then advances to the next.
-- After the final (main-pot) stage, the banner and all highlights **fade out**.
-- **Abort:** if a new hand begins (deal/hand-started) before the sequence finishes,
-  it clears immediately — banner gone, all card/seat highlights reset.
-
-> Open point for review: timing is **per stage** (so N winning hands ≈ N × ~4s total).
-> If a single ~4–5s total was intended instead, adjust here.
+- Each stage holds **~4s**, then advances to the next. Timing is **per stage**, so a
+  showdown with N winning hands runs ≈ N × ~4s.
+- After the final (main-pot) stage, the banner and all highlights **fade out** and the
+  table rests in its normal post-hand state until the next hand.
+- **The `hand-started` event is the hard terminator.** It can arrive at any point —
+  mid-stage, between stages, or after the sequence has already faded. Whenever it
+  arrives, the sequence is cut short immediately: any running stage timer is cancelled,
+  the banner is removed, and all card/seat highlights reset, so the new hand renders
+  clean. The per-stage timing above only governs pacing *within* the gap before the
+  next hand; it never delays or competes with a new hand.
 
 ### Fold-win (no showdown)
 
@@ -129,7 +132,8 @@ The name-swap action overlay (fold/check/call/bet/raise/all-in) is **unchanged**
 - **No side pots:** single main-pot stage, then fade.
 - **Fold-win:** empty `winningCards` → banner + seat glow, no card highlight.
 - **Unmatched card** (shouldn't occur under the contract): skipped defensively, no crash.
-- **New hand mid-sequence:** immediate abort + full reset.
+- **New hand at any time (`hand-started`):** immediate abort + full reset of banner,
+  card highlights, and seat glow — regardless of which stage (if any) is showing.
 
 ## Testing
 
