@@ -250,6 +250,12 @@ export interface Winner {
   userId: string;
   amount: number;
   handDescription: string;
+  /**
+   * The concrete cards (value + suit) forming the winner's best five-card hand,
+   * so clients can highlight them. Empty when the pot was won without a showdown
+   * (e.g. everyone else folded). Matches the server `showdown-result` payload.
+   */
+  winningCards: Card[];
 }
 
 export interface PotResult {
