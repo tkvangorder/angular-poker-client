@@ -11,6 +11,9 @@ const POD_BORDER_IDLE = 0xffffff;
 const POD_BORDER_IDLE_ALPHA = 0.08;
 const POD_BORDER_ACTIVE = 0xf5d678;
 const ACTIVE_GLOW_INTENSITY = 0.25;
+const WINNER_GLOW_COLOR = 0xf5d678;
+const WINNER_GLOW_INTENSITY = 0.5;
+const WINNER_NAME_COLOR = '#f5d678';
 
 const AVATAR_BG = 0x5a4428;
 const AVATAR_RING_COLOR = 0xdaa520;
@@ -45,6 +48,7 @@ export interface SeatSizing {
 export class SeatDisplay extends Phaser.GameObjects.Container {
   private bg: Phaser.GameObjects.Graphics;
   private glow: Phaser.GameObjects.Graphics;
+  private winnerGlow: Phaser.GameObjects.Graphics;
   private avatarBg: Phaser.GameObjects.Graphics;
   private avatarRing: Phaser.GameObjects.Graphics;
   private initialText: Phaser.GameObjects.Text;
@@ -54,6 +58,7 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
   private card2: CardSprite;
   private foldedTag: Phaser.GameObjects.Text;
   private lastPodH = 0;
+  private winnerHighlight = false;
 
   // Empty-slot visuals
   private emptyRing: Phaser.GameObjects.Graphics;
@@ -79,6 +84,9 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
 
     this.glow = new Phaser.GameObjects.Graphics(scene);
     this.add(this.glow);
+
+    this.winnerGlow = new Phaser.GameObjects.Graphics(scene);
+    this.add(this.winnerGlow);
 
     this.bg = new Phaser.GameObjects.Graphics(scene);
     this.add(this.bg);
@@ -188,6 +196,7 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
   private renderEmpty(): void {
     this.setVisible(true);
     this.glow.clear();
+    this.winnerGlow.clear();
     this.bg.clear();
     this.avatarBg.clear();
     this.avatarRing.clear();
@@ -234,7 +243,7 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
       this.nameText.setColor(actionOverlay.color);
     } else {
       this.nameText.setText(this.truncateName(playerName));
-      this.nameText.setColor(NAME_COLOR);
+      this.nameText.setColor(this.winnerHighlight ? WINNER_NAME_COLOR : NAME_COLOR);
     }
     this.stackText.setFontSize(stackFontSize);
     this.stackText.setText(chipCount != null ? this.formatChips(chipCount) : '');
@@ -341,11 +350,57 @@ export class SeatDisplay extends Phaser.GameObjects.Container {
     this.timerPodH = podH;
     this.timerActive = isActive;
     this.redrawTimer();
+    this.drawWinnerGlow(podW, podH);
   }
 
   /** Half-height of the current pod, in pixels, for external placement (e.g. action badges). */
   getPodHalfHeight(): number {
     return this.lastPodH / 2;
+  }
+
+  /** Gold pulse-free glow + gold name to mark the winning seat. Persists across re-renders. */
+  setWinnerHighlight(on: boolean): void {
+    this.winnerHighlight = on;
+    this.drawWinnerGlow(this.timerPodW, this.timerPodH);
+    // Re-tint the name without a full re-render; renderOccupied also honours the flag.
+    this.nameText.setColor(on ? WINNER_NAME_COLOR : NAME_COLOR);
+  }
+
+  /**
+   * Highlight / dim this seat's two hole cards for the showdown.
+   * `null` clears both. Otherwise the listed indices glow and the rest dim.
+   */
+  applyShowdownHighlight(highlightIndices: number[] | null): void {
+    const cards = [this.card1, this.card2];
+    for (let i = 0; i < cards.length; i++) {
+      if (highlightIndices == null) {
+        cards[i].setHighlight(false);
+        cards[i].setDimmed(false);
+      } else if (highlightIndices.includes(i)) {
+        cards[i].setDimmed(false);
+        cards[i].setHighlight(true);
+      } else {
+        cards[i].setHighlight(false);
+        cards[i].setDimmed(true);
+      }
+    }
+  }
+
+  private drawWinnerGlow(podW: number, podH: number): void {
+    this.winnerGlow.clear();
+    if (!this.winnerHighlight || podW <= 0 || podH <= 0) return;
+    const glowPad = 8;
+    for (let g = 0; g < 5; g++) {
+      const a = WINNER_GLOW_INTENSITY * (1 - g / 5);
+      this.winnerGlow.fillStyle(WINNER_GLOW_COLOR, a);
+      this.winnerGlow.fillRoundedRect(
+        -podW / 2 - glowPad * (g + 1),
+        -podH / 2 - glowPad * (g + 1),
+        podW + glowPad * 2 * (g + 1),
+        podH + glowPad * 2 * (g + 1),
+        this.sizing.podRadius + glowPad * (g + 1),
+      );
+    }
   }
 
   private truncateName(name: string): string {
