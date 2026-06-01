@@ -54,6 +54,26 @@ export class CommunityCards extends Phaser.GameObjects.Container {
     }
   }
 
+  /**
+   * Highlight / dim the board for the showdown. `null` clears all cards back to
+   * normal. Otherwise the listed indices glow and every other card dims.
+   */
+  applyShowdownHighlight(highlightIndices: number[] | null): void {
+    for (let i = 0; i < MAX_COMMUNITY_CARDS; i++) {
+      const card = this.cards[i];
+      if (highlightIndices == null) {
+        card.setHighlight(false);
+        card.setDimmed(false);
+      } else if (highlightIndices.includes(i)) {
+        card.setDimmed(false);
+        card.setHighlight(true);
+      } else {
+        card.setHighlight(false);
+        card.setDimmed(true);
+      }
+    }
+  }
+
   resize(cardWidth: number): void {
     this.cardWidth = cardWidth;
   }
